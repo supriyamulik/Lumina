@@ -1,0 +1,32 @@
+# Root gitignore for Luminaa Project
+
+# Dependency directories
+node_modules/
+**/node_modules/
+
+# Build outputs
+dist/
+**/dist/
+build/
+**/build/
+
+# Firebase / Secret files
+.env
+.env.local
+.env.*
+serviceAccountKey.json
+**/serviceAccountKey.json
+
+# Log files
+*.log
+**/firebase-debug.log
+**/firestore-debug.log
+**/ui-debug.log
+
+# Firebase cache
+.firebase/
+**/.firebase/
+
+# OS files
+.DS_Store
+Thumbs.db
