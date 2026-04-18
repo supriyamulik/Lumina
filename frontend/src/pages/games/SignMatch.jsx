@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import GameContainer from '../../components/games/GameContainer';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useTranslation } from 'react-i18next';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
 
 export default function SignMatch() {
   const { profile } = useProfile();
   const { t } = useTranslation();
+  const { playSuccess, playError, playVictory } = useSoundEffects();
   const [score, setScore] = useState(0);
   const [currentPair, setCurrentPair] = useState(null);
   const [options, setOptions] = useState([]);
@@ -31,7 +33,7 @@ export default function SignMatch() {
     const main = pairs[Math.floor(Math.random() * pairs.length)];
     const others = pairs.filter(p => p.word !== main.word).sort(() => Math.random() - 0.5).slice(0, 2);
     const roundOptions = [main, ...others].sort(() => Math.random() - 0.5);
-    
+
     setCurrentPair(main);
     setOptions(roundOptions);
     setFeedback('');
@@ -39,10 +41,12 @@ export default function SignMatch() {
 
   const handleSelect = (option) => {
     if (option.word === currentPair.word) {
+      playSuccess();
       setScore(s => s + 50);
       setFeedback(t('games.sign_match_correct'));
       setTimeout(generateNewRound, 1500);
     } else {
+      playError();
       setFeedback(t('games.sign_match_try_again'));
     }
   };
@@ -52,7 +56,7 @@ export default function SignMatch() {
       <div style={{ fontSize: isLowVision ? '80px' : '120px', marginBottom: '20px', animation: 'bounce 2s infinite' }}>
         {currentPair?.icon}
       </div>
-      
+
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
         {options.map((opt, i) => (
           <button
@@ -81,7 +85,7 @@ export default function SignMatch() {
       <div style={{ marginTop: '40px', fontSize: '24px', fontWeight: 'bold', color: isLowVision ? '#FFF' : '#1A7A62' }}>
         {feedback}
       </div>
-      
+
       <style>{`
         @keyframes bounce { 
           0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 

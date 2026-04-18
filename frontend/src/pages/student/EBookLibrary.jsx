@@ -55,26 +55,26 @@ export default function EBookLibrary() {
   }, [studentUser]);
 
   const filteredBooks = ebookData.filter(book => {
-    const matchesSearch = book.title.en.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          (book.title.hi && book.title.hi.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                          (book.title.mr && book.title.mr.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+    const matchesSearch = book.title.en.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (book.title.hi && book.title.hi.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (book.title.mr && book.title.mr.toLowerCase().includes(searchTerm.toLowerCase()));
+
     // Adjusted Age matching logic
-    const matchesAge = activeAge === 'All' || 
-                      (activeAge === '3-10' && (book.ageCategory === '3-6' || book.ageCategory === '7-10')) ||
-                      (activeAge === book.ageCategory);
+    const matchesAge = activeAge === 'All' ||
+      (activeAge === '3-10' && (book.ageCategory === '3-6' || book.ageCategory === '7-10')) ||
+      (activeAge === book.ageCategory);
 
     const matchesLang = activeLang === 'All' || book.languages.includes(activeLang.toLowerCase());
-    
+
     return matchesSearch && matchesAge && matchesLang;
   });
 
   const containerStyle = {
     minHeight: '100vh',
-    background: 'linear-gradient(135deg, #0A1628 0%, #112240 100%)',
+    background: 'linear-gradient(135deg, #F8FAFC 0%, #F0F9F7 100%)',
     padding: '40px 60px',
     fontFamily: Fonts.body,
-    color: '#FFFFFF',
+    color: '#1A2635',
     position: 'relative',
     overflow: 'hidden'
   };
@@ -93,12 +93,12 @@ export default function EBookLibrary() {
       <style>{globalStyles}</style>
       <header style={headerStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-          <button onClick={() => navigate('/dashboard')} style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.1)', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#FFF' }}>←</button>
+          <button onClick={() => navigate('/dashboard')} style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(74, 144, 217, 0.1)', border: '2px solid #4A90D9', fontSize: '20px', cursor: 'pointer', color: '#4A90D9' }}>←</button>
           <div>
-            <h1 style={{ fontFamily: Fonts.heading, fontSize: '36px', fontWeight: 'bold', margin: '0 0 4px 0', color: C.amber }}>
+            <h1 style={{ fontFamily: Fonts.heading, fontSize: '36px', fontWeight: 'bold', margin: '0 0 4px 0', color: '#2563EB' }}>
               Gyaan Library
             </h1>
-            <p style={{ margin: 0, opacity: 0.6, fontWeight: 700 }}>Dive into a world of multilingual stories!</p>
+            <p style={{ margin: 0, opacity: 0.7, fontWeight: 700, color: '#64748B' }}>Dive into a world of multilingual stories!</p>
           </div>
         </div>
         <LuminaLogo size={54} color={C.amber} />
@@ -106,8 +106,8 @@ export default function EBookLibrary() {
 
       {/* Search Bar */}
       <div style={{ marginBottom: '32px', position: 'relative', zIndex: 2 }}>
-        <input 
-          type="text" 
+        <input
+          type="text"
           placeholder="🔍 Search for stories, authors or subjects..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
@@ -115,31 +115,31 @@ export default function EBookLibrary() {
             width: '100%',
             padding: '18px 24px',
             borderRadius: '16px',
-            border: '2px solid rgba(255,255,255,0.2)',
-            background: 'rgba(255,255,255,0.1)',
-            color: '#FFF',
+            border: '2px solid rgba(74, 144, 217, 0.2)',
+            background: 'rgba(74, 144, 217, 0.05)',
+            color: '#1A2635',
             fontSize: '16px',
             fontFamily: Fonts.body,
             outline: 'none',
             backdropFilter: 'blur(10px)',
             transition: 'all 0.3s'
           }}
-          onFocus={(e) => e.target.style.border = `2px solid ${C.amber}`}
-          onBlur={(e) => e.target.style.border = '2px solid rgba(255,255,255,0.2)'}
+          onFocus={(e) => e.target.style.border = `2px solid #4A90D9`}
+          onBlur={(e) => e.target.style.border = '2px solid rgba(74, 144, 217, 0.2)'}
         />
       </div>
 
       <div style={{ display: 'flex', gap: '16px', marginBottom: '40px', position: 'relative', zIndex: 2, flexWrap: 'wrap' }}>
         {['All', '3-10', '11-15'].map(age => (
-          <button 
+          <button
             key={age}
             onClick={() => setActiveAge(age)}
             style={{
               padding: '10px 24px',
               borderRadius: '99px',
-              border: 'none',
-              backgroundColor: activeAge === age ? C.amber : 'rgba(255,255,255,0.1)',
-              color: activeAge === age ? C.navy : '#FFF',
+              border: '2px solid ' + (activeAge === age ? '#4A90D9' : 'rgba(74, 144, 217, 0.2)'),
+              backgroundColor: activeAge === age ? '#4A90D9' : '#FFFFFF',
+              color: activeAge === age ? '#FFFFFF' : '#1A2635',
               fontWeight: 800,
               cursor: 'pointer',
               transition: 'all 0.3s'
@@ -150,7 +150,7 @@ export default function EBookLibrary() {
         ))}
         <div style={{ width: '2px', backgroundColor: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
         {['All', 'EN', 'HI', 'MR'].map(lang => (
-          <button 
+          <button
             key={lang}
             onClick={() => setActiveLang(lang)}
             style={{
@@ -171,8 +171,8 @@ export default function EBookLibrary() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '32px', position: 'relative', zIndex: 2 }}>
         {filteredBooks.map((book, index) => (
-          <div 
-            key={book.id} 
+          <div
+            key={book.id}
             className="glass-card book-card"
             onClick={() => navigate(`/reader/${book.id}`)}
             style={{
@@ -192,7 +192,7 @@ export default function EBookLibrary() {
             </div>
             <h3 style={{ fontFamily: Fonts.heading, fontSize: '22px', margin: '0 0 8px 0' }}>{book.title[i18n.language] || book.title.en}</h3>
             <p style={{ margin: '0 0 20px 0', fontSize: '13px', opacity: 0.5, fontWeight: 800 }}>{book.author}</p>
-            
+
             <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
               <span style={{ backgroundColor: 'rgba(255,255,255,0.1)', padding: '6px 14px', borderRadius: '99px', fontSize: '11px', fontWeight: 900, color: C.amber }}>
                 AGE {book.ageCategory}

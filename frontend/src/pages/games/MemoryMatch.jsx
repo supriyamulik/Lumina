@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameContainer from '../../components/games/GameContainer';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useTranslation } from 'react-i18next';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
 
 export default function MemoryMatch() {
   const { profile } = useProfile();
   const { t } = useTranslation();
+  const { playMatch, playError, playVictory, playClick } = useSoundEffects();
   const [cards, setCards] = useState([]);
   const [flipped, setFlipped] = useState([]);
   const [matched, setMatched] = useState([]);
@@ -36,19 +38,29 @@ export default function MemoryMatch() {
     initGame();
   }, [initGame]);
 
+  // Play victory sound when all cards are matched
+  useEffect(() => {
+    if (matched.length > 0 && cards.length > 0 && matched.length === cards.length) {
+      setTimeout(() => playVictory(), 300);
+    }
+  }, [matched, cards.length, playVictory]);
+
   const handleFlip = (id) => {
     if (flipped.length === 2 || flipped.includes(id) || matched.includes(id)) return;
 
+    playClick();
     const newFlipped = [...flipped, id];
     setFlipped(newFlipped);
 
     if (newFlipped.length === 2) {
       const [id1, id2] = newFlipped;
       if (cards[id1].symbol === cards[id2].symbol) {
+        playMatch();
         setMatched(m => [...m, id1, id2]);
         setScore(s => s + 500);
         setFlipped([]);
       } else {
+        playError();
         setTimeout(() => setFlipped([]), 1000);
       }
     }
@@ -90,10 +102,10 @@ export default function MemoryMatch() {
         })}
       </div>
       {matched.length === cards.length && cards.length > 0 && (
-         <div style={{ marginTop: '40px' }}>
-            <h2 style={{ fontSize: '32px', color: '#1A7A62' }}>{t('games.memory_match_master')}</h2>
-            <button onClick={initGame} style={{ padding: '12px 32px', backgroundColor: '#E8920C', color: '#FFF', border: 'none', borderRadius: '12px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', marginTop: '16px' }}>{t('games.memory_match_restart')}</button>
-         </div>
+        <div style={{ marginTop: '40px' }}>
+          <h2 style={{ fontSize: '32px', color: '#1A7A62' }}>{t('games.memory_match_master')}</h2>
+          <button onClick={initGame} style={{ padding: '12px 32px', backgroundColor: '#E8920C', color: '#FFF', border: 'none', borderRadius: '12px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', marginTop: '16px' }}>{t('games.memory_match_restart')}</button>
+        </div>
       )}
     </div>
   );

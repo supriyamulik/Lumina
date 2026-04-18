@@ -34,7 +34,33 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  transition: background 0.3s ease;
+  transition: background 0.3s ease, font-family 0.3s ease;
+}
+
+/* ─── Dyslexia Font Support ─────────────────────────────────────────────────── */
+html.dyslexia-mode,
+html.dyslexia-mode body {
+  font-family: 'OpenDyslexic', 'Nunito', sans-serif !important;
+}
+
+html.dyslexia-mode * {
+  font-family: 'OpenDyslexic', 'Nunito', sans-serif !important;
+}
+
+/* High Contrast Mode */
+html.high-contrast-mode {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+html.high-contrast-mode body {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+
+html.high-contrast-mode * {
+  background-color: inherit;
+  color: inherit;
 }
 
 .glass-card {
@@ -75,4 +101,5 @@ body {
 
 #root {
   min-height: 100vh;
+  background-color: var(--cream);
 }

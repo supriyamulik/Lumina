@@ -8,7 +8,7 @@ import EnlightenmentScene from '../components/EnlightenmentScene';
 import DiyaGuru from '../components/DiyaGuru';
 import Companion from '../components/interactive/Companion';
 import reactionService from '../services/reactionService';
-import { useAccessibilityStore } from '../accessibility/useAccessibilityStore';
+import { useAccessibility } from '../contexts/AccessibilityContext';
 
 // 🎨 Dyslexia-Friendly Pure Neutral Palette
 const C = {
@@ -43,22 +43,13 @@ export default function StudentDashboard() {
   const { profile } = useProfile() || { profile: null };
   const { logoutChild } = useAuth();
   const { t, i18n } = useTranslation();
-  
-  const [isDyslexicFont, setIsDyslexicFont] = useState(false);
+  const { isDyslexiaMode, toggleDyslexiaMode } = useAccessibility();
+
   const [currentView, setCurrentView] = useState('home'); // 'home', 'labs', 'settings'
   const [companionState, setCompanionState] = useState('idle');
   const [companionMsg, setCompanionMsg] = useState('');
 
   const [hoveredAction, setHoveredAction] = useState(null);
-
-  useEffect(() => {
-    // Apply body class for global font changes
-    if (isDyslexicFont) {
-        document.body.classList.add('acc-mode-dyslexia');
-    } else {
-        document.body.classList.remove('acc-mode-dyslexia');
-    }
-  }, [isDyslexicFont]);
 
   useEffect(() => {
     const greetTimer = setTimeout(() => {
@@ -100,10 +91,7 @@ export default function StudentDashboard() {
   const mainAreaStyle = {
     minHeight: '100vh',
     backgroundColor: C.slate,
-    fontFamily: isDyslexicFont ? 'OpenDyslexic, sans-serif' : Fonts.body,
-    display: 'flex',
-    flexDirection: 'column',
-    color: C.text
+    fontFamily: isDyslexiaMode ? "'OpenDyslexic', sans-serif" : Fonts.body,
   };
 
   const topBarStyle = {
@@ -195,8 +183,8 @@ export default function StudentDashboard() {
           {navItems.map(item => {
             const isActive = currentView === item.id;
             return (
-              <button 
-                key={item.id} 
+              <button
+                key={item.id}
                 style={navLinkStyle(isActive)}
                 onClick={() => item.action ? item.action() : navigate(item.path)}
               >
@@ -214,12 +202,12 @@ export default function StudentDashboard() {
 
       {/* 🖼️ MAIN GUIDED AREA */}
       <main style={{ flex: 1, padding: '40px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-        
+
         <DiyaGuru state={companionState} message={companionMsg} />
 
         {currentView === 'home' ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            <button 
+            <button
               style={guidedButtonStyle(true, hoveredAction === 'continue')}
               onMouseEnter={() => setHoveredAction('continue')}
               onMouseLeave={() => setHoveredAction(null)}
@@ -232,27 +220,27 @@ export default function StudentDashboard() {
             </button>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-              <button 
+              <button
                 style={guidedButtonStyle(false, hoveredAction === 'practice')}
                 onMouseEnter={() => setHoveredAction('practice')}
                 onMouseLeave={() => setHoveredAction(null)}
                 onClick={() => setCurrentView('labs')}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '2.5rem' }}>🧪</span>
-                    <span>{t('dashboard.practice')}</span>
+                  <span style={{ fontSize: '2.5rem' }}>🧪</span>
+                  <span>{t('dashboard.practice')}</span>
                 </div>
               </button>
 
-              <button 
+              <button
                 style={guidedButtonStyle(false, hoveredAction === 'story')}
                 onMouseEnter={() => setHoveredAction('story')}
                 onMouseLeave={() => setHoveredAction(null)}
                 onClick={() => navigate('/library')}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                    <span style={{ fontSize: '2.5rem' }}>📖</span>
-                    <span>{t('dashboard.story')}</span>
+                  <span style={{ fontSize: '2.5rem' }}>📖</span>
+                  <span>{t('dashboard.story')}</span>
                 </div>
               </button>
             </div>
@@ -261,10 +249,10 @@ export default function StudentDashboard() {
           /* 🧪 LABS ONE-BY-ONE GALLERY */
           <div>
             <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-               <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
-               <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.labs')}</h2>
+              <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
+              <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.labs')}</h2>
             </header>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {labs.map(lab => (
                 <button
@@ -307,92 +295,92 @@ export default function StudentDashboard() {
           /* 📚 RESOURCES VIEW */
           <div>
             <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-               <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
-               <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>Resources</h2>
+              <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
+              <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>Resources</h2>
             </header>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '48px' }}>
-               {/* Video Section */}
-               <section>
-                 <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    📺 Motivational Videos
-                 </h3>
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-                    {videos.map(v => (
-                       <div key={v.id} style={{ backgroundColor: C.white, padding: '20px', borderRadius: '24px', border: `2.5px solid ${C.border}`, boxShadow: '0 8px 16px -4px rgba(0,0,0,0.05)' }}>
-                          <iframe
-                             width="100%"
-                             height="240"
-                             src={v.videoUrl.replace('youtube.com', 'youtube-nocookie.com')}
-                             title={v.title}
-                             frameBorder="0"
-                             allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                             allowFullScreen
-                             style={{ borderRadius: '16px', marginBottom: '16px' }}
-                          ></iframe>
-                          <p style={{ fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>{v.title}</p>
-                       </div>
-                    ))}
-                 </div>
-               </section>
+              {/* Video Section */}
+              <section>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  📺 Motivational Videos
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
+                  {videos.map(v => (
+                    <div key={v.id} style={{ backgroundColor: C.white, padding: '20px', borderRadius: '24px', border: `2.5px solid ${C.border}`, boxShadow: '0 8px 16px -4px rgba(0,0,0,0.05)' }}>
+                      <iframe
+                        width="100%"
+                        height="240"
+                        src={v.videoUrl.replace('youtube.com', 'youtube-nocookie.com')}
+                        title={v.title}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        style={{ borderRadius: '16px', marginBottom: '16px' }}
+                      ></iframe>
+                      <p style={{ fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>{v.title}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
 
-               {/* Assignments Section */}
-               <section>
-                 <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    📙 Home Assignments
-                 </h3>
-                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                    {assignments.map(a => (
-                       <a
-                          key={a.id}
-                          href={a.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{
-                             padding: '24px',
-                             borderRadius: '20px',
-                             backgroundColor: C.white,
-                             border: `2.5px solid ${C.border}`,
-                             display: 'flex',
-                             alignItems: 'center',
-                             gap: '20px',
-                             textDecoration: 'none',
-                             transition: 'all 0.2s',
-                             boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                          }}
-                          onMouseEnter={(e) => {
-                             e.currentTarget.style.transform = 'translateY(-2px)';
-                             e.currentTarget.style.borderColor = C.blue;
-                          }}
-                          onMouseLeave={(e) => {
-                             e.currentTarget.style.transform = 'none';
-                             e.currentTarget.style.borderColor = C.border;
-                          }}
-                       >
-                          <span style={{ fontSize: '2rem' }}>{a.icon}</span>
-                          <div style={{ flex: 1 }}>
-                             <p style={{ fontWeight: 900, fontSize: '1rem', color: C.text, margin: 0 }}>{a.title}</p>
-                             <span style={{ fontSize: '0.8rem', fontWeight: 800, color: C.textSoft }}>View PDF Assignment</span>
-                          </div>
-                          <span style={{ color: C.blue, fontWeight: 900 }}>↓</span>
-                       </a>
-                    ))}
-                 </div>
-               </section>
+              {/* Assignments Section */}
+              <section>
+                <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  📙 Home Assignments
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
+                  {assignments.map(a => (
+                    <a
+                      key={a.id}
+                      href={a.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        padding: '24px',
+                        borderRadius: '20px',
+                        backgroundColor: C.white,
+                        border: `2.5px solid ${C.border}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '20px',
+                        textDecoration: 'none',
+                        transition: 'all 0.2s',
+                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.borderColor = C.blue;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.borderColor = C.border;
+                      }}
+                    >
+                      <span style={{ fontSize: '2rem' }}>{a.icon}</span>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontWeight: 900, fontSize: '1rem', color: C.text, margin: 0 }}>{a.title}</p>
+                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: C.textSoft }}>View PDF Assignment</span>
+                      </div>
+                      <span style={{ color: C.blue, fontWeight: 900 }}>↓</span>
+                    </a>
+                  ))}
+                </div>
+              </section>
             </div>
           </div>
         ) : (
           /* ⚙️ SETTINGS VIEW */
           <div style={{ backgroundColor: C.white, borderRadius: '32px', padding: '40px', border: `3px solid ${C.border}` }}>
-             <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-               <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
-               <h2 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.settings')}</h2>
+            <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+              <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
+              <h2 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.settings')}</h2>
             </header>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <p style={{ fontWeight: 700, color: C.textSoft }}>Manage your profile and learning preferences here.</p>
-                <button onClick={logoutChild} style={{ backgroundColor: '#EF4444', color: '#fff', padding: '15px 30px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer' }}>
-                    {t('common.logout')}
-                </button>
+              <p style={{ fontWeight: 700, color: C.textSoft }}>Manage your profile and learning preferences here.</p>
+              <button onClick={logoutChild} style={{ backgroundColor: '#EF4444', color: '#fff', padding: '15px 30px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer' }}>
+                {t('common.logout')}
+              </button>
             </div>
           </div>
         )}
@@ -402,7 +390,7 @@ export default function StudentDashboard() {
       <div style={floatingControlStyle}>
         {/* Language Selection Pop-up / Button */}
         <div style={{ position: 'relative' }}>
-          <select 
+          <select
             onChange={(e) => i18n.changeLanguage(e.target.value)}
             value={i18n.language}
             style={controlButtonStyle}
@@ -414,17 +402,17 @@ export default function StudentDashboard() {
           </select>
         </div>
 
-        <button 
-          onClick={() => setIsDyslexicFont(!isDyslexicFont)}
+        <button
+          onClick={toggleDyslexiaMode}
           style={{
             ...controlButtonStyle,
-            backgroundColor: isDyslexicFont ? C.blue : C.white,
-            color: isDyslexicFont ? C.white : C.text,
-            borderColor: isDyslexicFont ? C.blue : C.border
+            backgroundColor: isDyslexiaMode ? C.blue : C.white,
+            color: isDyslexiaMode ? C.white : C.text,
+            borderColor: isDyslexiaMode ? C.blue : C.border
           }}
         >
           <Icons.Font />
-          {isDyslexicFont ? 'DYSLEXIC FONT: ON' : 'DYSLEXIC FONT: OFF'}
+          {isDyslexiaMode ? 'DYSLEXIC FONT: ON' : 'DYSLEXIC FONT: OFF'}
         </button>
       </div>
 

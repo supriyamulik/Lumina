@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as faceapi from 'face-api.js';
 import { Box, Typography, Button, Paper, CircularProgress } from '@mui/material';
 import ttsService from '../../services/ttsService';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
 
 const EMOTIONS = [
   { id: 'happy', emoji: '😁', label: 'Happy', threshold: 0.8 },
@@ -12,6 +13,7 @@ const EMOTIONS = [
 
 export default function EmojiEmotion() {
   const videoRef = useRef(null);
+  const { playSuccess, playCombo } = useSoundEffects();
   const [modelsLoaded, setModelsLoaded] = useState(false);
   const [currentEmotionIdx, setCurrentEmotionIdx] = useState(0);
   const [success, setSuccess] = useState(false);
@@ -61,25 +63,25 @@ export default function EmojiEmotion() {
   // Clean up global interval for face detection
   useEffect(() => {
     let intervalId;
-    
+
     if (modelsLoaded && !loading && !success) {
       intervalId = setInterval(async () => {
         if (videoRef.current && !videoRef.current.paused && !videoRef.current.ended) {
           try {
             const detections = await faceapi.detectSingleFace(
-              videoRef.current, 
+              videoRef.current,
               new faceapi.TinyFaceDetectorOptions()
             ).withFaceExpressions();
-            
+
             if (detections) {
               const expr = detections.expressions;
               const val = expr[currentEmotion.id];
-              
+
               if (val > currentEmotion.threshold) {
                 setSuccess(true);
               }
             }
-          } catch(e) {}
+          } catch (e) { }
         }
       }, 500); // Check every half a second
     }
@@ -102,9 +104,10 @@ export default function EmojiEmotion() {
   // Trigger voice when they get it right
   useEffect(() => {
     if (success) {
+      playCombo();
       ttsService.speak("Great job!");
     }
-  }, [success]);
+  }, [success, playCombo]);
 
   // Clean up: Stop video & audio on unmount
   useEffect(() => {
@@ -133,9 +136,9 @@ export default function EmojiEmotion() {
           </Box>
         ) : (
           <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={4} alignItems="center" justifyContent="center" mt={4}>
-            
+
             {/* Left Box: Emoji Target */}
-            <Paper elevation={4} sx={{ 
+            <Paper elevation={4} sx={{
               p: 4, width: '100%', maxWidth: 400, textAlign: 'center', borderRadius: 4,
               border: success ? '4px solid #4CAF50' : '4px solid transparent',
               transition: 'border 0.3s'
@@ -170,11 +173,11 @@ export default function EmojiEmotion() {
                   <Typography mt={2}>{!modelsLoaded ? 'Loading AI Models...' : 'Starting Camera...'}</Typography>
                 </Box>
               )}
-              <video 
+              <video
                 ref={videoRef}
-                autoPlay 
-                muted 
-                playsInline 
+                autoPlay
+                muted
+                playsInline
                 style={{ width: '100%', height: '375px', objectFit: 'cover', transform: 'scaleX(-1)' }} // Mirror the video so it feels natural
                 onPlaying={() => setLoading(false)}
               />

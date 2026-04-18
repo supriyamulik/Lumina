@@ -3,6 +3,7 @@ import Phaser from 'phaser';
 import GameContainer from '../../components/games/GameContainer';
 import { useTranslation } from 'react-i18next';
 import { useProfile } from '../../contexts/ProfileContext';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
 
 /**
  * Math Race: Turbo Adventure (Phaser High-Fidelity Restored)
@@ -13,8 +14,15 @@ const MathRace = () => {
     const gameRef = useRef(null);
     const { t } = useTranslation();
     const { profile } = useProfile();
+    const { playSuccess, playError, playVictory, playWarning } = useSoundEffects();
     const [victory, setVictory] = useState(false);
     const [finalScore, setFinalScore] = useState(0);
+
+    // Store sound functions in ref for access from Phaser scene
+    const soundFunctionsRef = useRef({ playSuccess, playError, playVictory, playWarning });
+    useEffect(() => {
+        soundFunctionsRef.current = { playSuccess, playError, playVictory, playWarning };
+    }, [playSuccess, playError, playVictory, playWarning]);
 
     useEffect(() => {
         const config = {
@@ -159,6 +167,7 @@ const MathRace = () => {
 
         function generateQuestion() {
             if (questionCount >= 10) {
+                soundFunctionsRef.current.playVictory();
                 this.add.text(300, 400, 'FINISHED!', { fontSize: '64px', fill: '#fff' }).setOrigin(0.5);
                 setTimeout(() => {
                     setFinalScore(score);
@@ -194,7 +203,7 @@ const MathRace = () => {
                 onComplete: () => {
                     isMoving = false;
                     currentLane = laneIndex;
-                    
+
                     if (choice === currentProblem.a) {
                         const elapsed = Date.now() - questionStartTime;
                         correctAnswer.call(this, elapsed);
@@ -206,20 +215,22 @@ const MathRace = () => {
         }
 
         function correctAnswer(elapsed) {
+            soundFunctionsRef.current.playSuccess();
             score += 100 + (combo * 10);
             combo++;
             questionCount++;
 
             // ⚡ Speed Boost logic based on response time
             if (elapsed < 2000) {
-              targetSpeed = 40; // Super fast!
-              this.cameras.main.shake(200, 0.01);
+                soundFunctionsRef.current.playWarning(); // Extra excitement for fast answers
+                targetSpeed = 40; // Super fast!
+                this.cameras.main.shake(200, 0.01);
             } else if (elapsed < 4000) {
-              targetSpeed = 25; // Good speed
+                targetSpeed = 25; // Good speed
             } else {
-              targetSpeed = 15; // Cruise speed
+                targetSpeed = 15; // Cruise speed
             }
-            
+
             scoreText.setText(`Score: ${score}`);
             if (combo > 1) comboText.setText(`${combo}x COMBO!`);
 
@@ -228,6 +239,7 @@ const MathRace = () => {
         }
 
         function wrongAnswer() {
+            soundFunctionsRef.current.playError();
             combo = 0;
             targetSpeed = 5; // Slow down on mistake
             comboText.setText('');
@@ -239,7 +251,7 @@ const MathRace = () => {
             // Speed decay back to normal over time
             if (targetSpeed > 10) targetSpeed -= 0.05;
             if (targetSpeed < 10) targetSpeed += 0.05;
-            
+
             // Smoothlerp current speed
             currentSpeed = Phaser.Math.Linear(currentSpeed, targetSpeed, 0.1);
 
@@ -292,17 +304,17 @@ const MathRace = () => {
             description={t('games.math_race_desc')}
             type="component"
             gameSource={
-                <div style={{ 
-                    position: 'relative', 
-                    width: '100%', 
-                    maxWidth: '600px', 
-                    height: 'auto', 
-                    aspectRatio: '600 / 800', 
-                    maxHeight: 'calc(100vh - 150px)', 
-                    backgroundColor: '#020617', 
-                    borderRadius: '32px', 
-                    overflow: 'hidden', 
-                    boxShadow: '0 30px 60px rgba(0,0,0,0.5)' 
+                <div style={{
+                    position: 'relative',
+                    width: '100%',
+                    maxWidth: '600px',
+                    height: 'auto',
+                    aspectRatio: '600 / 800',
+                    maxHeight: 'calc(100vh - 150px)',
+                    backgroundColor: '#020617',
+                    borderRadius: '32px',
+                    overflow: 'hidden',
+                    boxShadow: '0 30px 60px rgba(0,0,0,0.5)'
                 }}>
                     <div id="phaser-container" style={{ width: '100%', height: '100%' }} />
                     {victory && <VictoryOverlay />}

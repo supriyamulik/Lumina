@@ -3,72 +3,89 @@
  * Web Speech API TTS wrapper for Luminaa
  */
 
+// Force voices to load by creating a dummy utterance
+if (typeof window !== 'undefined' && window.speechSynthesis) {
+  const synth = window.speechSynthesis;
+
+  // Try to get voices immediately
+  synth.getVoices();
+
+  // Also set up onvoiceschanged in case voices load later
+  synth.onvoiceschanged = () => {
+    console.log('[ttsService] Voices changed, available:', synth.getVoices().length);
+  };
+}
+
 const ttsService = {
   /**
    * Speak text with specific options for rate, pitch, and events
    */
   speak: (text, { rate = 1, pitch = 1.1, onWord, onEnd } = {}) => {
-    // 1. Cancel any active speech
-    window.speechSynthesis.cancel();
+    console.log('[ttsService] speak() called:', text.substring(0, 40));
 
-    // 2. Prepare the utterance
-    const utter = new SpeechSynthesisUtterance(text);
-    utter.rate = rate;
-    utter.pitch = pitch;
-    utter.lang = 'en-IN';
+    try {
+      const synth = window.speechSynthesis;
 
-    // 3. Select a suitable voice (prioritize female English voices for companionship)
-    const selectVoiceAndSpeak = () => {
-      const voices = window.speechSynthesis.getVoices();
-      
-      // Handle the "Empty Voices" bug (Bug 8)
-      if (voices.length === 0) {
-        window.speechSynthesis.onvoiceschanged = () => {
-          // Unbind once triggered to avoid loops
-          window.speechSynthesis.onvoiceschanged = null;
-          ttsService.speak(text, { rate, pitch, onWord, onEnd });
-        };
-        return;
-      }
+      // Cancel any previous speech
+      synth.cancel();
 
-      const voice = 
-        voices.find(v => v.lang.startsWith('en') && v.name.toLowerCase().includes('female')) || 
-        voices.find(v => v.lang.startsWith('en')) || 
-        voices[0];
+      // Create utterance
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.rate = rate;
+      utter.pitch = pitch;
+      utter.lang = 'en-US';  // Changed from en-IN to en-US for better compatibility
+      utter.volume = 1.0;
 
-      if (voice) utter.voice = voice;
+      // Add event listeners
+      utter.onstart = () => console.log('[ttsService] Speech started');
+      utter.onend = () => {
+        console.log('[ttsService] Speech ended');
+        if (onEnd) onEnd();
+      };
+      utter.onerror = (event) => console.error('[ttsService] Speech error:', event.error);
 
-      // 4. Attach event listeners
-      if (onWord) {
-        utter.addEventListener('boundary', (event) => {
-          if (event.name === 'word') {
-            onWord(event);
-          }
-        });
-      }
-      if (onEnd) {
-        utter.addEventListener('end', onEnd);
-      }
+      // Function to handle speaking
+      const speakWhenReady = () => {
+        const voices = synth.getVoices();
+        console.log('[ttsService] Available voices:', voices.length);
 
-      // 5. Trigger the speech
-      window.speechSynthesis.speak(utter);
-    };
+        if (voices.length === 0) {
+          console.log('[ttsService] Waiting for voices to load...');
+          setTimeout(speakWhenReady, 100);
+          return;
+        }
 
-    selectVoiceAndSpeak();
+        // Select voice (prefer English)
+        const voice = voices.find(v => v.lang.includes('en-US')) ||
+          voices.find(v => v.lang.includes('en')) ||
+          voices[0];
+
+        console.log('[ttsService] Selected voice:', voice?.name);
+        utter.voice = voice;
+
+        // Speak
+        console.log('[ttsService] Calling speak()...');
+        synth.speak(utter);
+      };
+
+      speakWhenReady();
+    } catch (error) {
+      console.error('[ttsService] Error:', error);
+    }
   },
 
   /**
-   * Immediately stop all speech synthesis
+   * Stop speech
    */
   stop: () => {
-    window.speechSynthesis.cancel();
+    window.speechSynthesis?.cancel();
   },
 
   /**
-   * Check if the synthesis system is currently active
+   * Check if speaking
    */
   isSpeaking: () => {
-    return window.speechSynthesis.speaking;
+    return window.speechSynthesis?.speaking || false;
   },
 };
 

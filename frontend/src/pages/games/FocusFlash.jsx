@@ -3,15 +3,23 @@ import Phaser from 'phaser';
 import GameContainer from '../../components/games/GameContainer';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useTranslation } from 'react-i18next';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
 
 export default function FocusFlash() {
   const { profile } = useProfile();
   const { t } = useTranslation();
+  const { playSuccess, playWarning } = useSoundEffects();
   const [score, setScore] = useState(0);
 
   // Disability flags
   const isADHD = profile?.disabilities?.includes('ADHD');
   const isLowVision = profile?.disabilities?.includes('Low Vision');
+
+  // Store sound functions in ref
+  const soundFunctionsRef = useRef({ playSuccess, playWarning });
+  useEffect(() => {
+    soundFunctionsRef.current = { playSuccess, playWarning };
+  }, [playSuccess, playWarning]);
 
   const handleGameEnd = (finalScore) => {
     setScore(finalScore);
@@ -56,13 +64,13 @@ export default function FocusFlash() {
 
       function create() {
         const scene = this;
-        
+
         // Spawn first orb
         spawnOrb(scene);
 
         // Feedback Text
-        this.scoreText = this.add.text(20, 20, `${t('games.math_race')} : 0`, { 
-          fontSize: '24px', 
+        this.scoreText = this.add.text(20, 20, `${t('games.math_race')} : 0`, {
+          fontSize: '24px',
           fill: isLowVision ? '#FFFF00' : '#1A7A62',
           fontWeight: 'bold'
         });
@@ -92,13 +100,13 @@ export default function FocusFlash() {
         });
 
         target.on('pointerdown', () => {
-          gameScore += 10;
+          soundFunctionsRef.current.playSuccess();
           scene.scoreText.setText(`${t('games.math_race')} : ` + gameScore);
           setScore(gameScore);
 
           // Success Flash for ADHD
           scene.cameras.main.flash(100, 255, 255, 255, 0.1);
-          
+
           spawnOrb(scene);
         });
 
@@ -109,7 +117,7 @@ export default function FocusFlash() {
         });
       }
 
-      function update() {}
+      function update() { }
 
       return () => {
         game.destroy(true);

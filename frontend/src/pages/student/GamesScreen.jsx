@@ -38,23 +38,23 @@ export default function GamesScreen() {
 
     const containerStyle = {
         minHeight: '100vh',
-        background: hasLowVision ? '#000' : 'linear-gradient(180deg, #0A1628 0%, #112240 100%)',
+        background: hasLowVision ? '#FFFFFF' : 'linear-gradient(180deg, #F8FAFC 0%, #F0F9F7 100%)',
         padding: '40px 60px',
         fontFamily: Fonts.body,
-        color: hasLowVision ? '#FFF' : '#FFFFFF',
+        color: hasLowVision ? '#000000' : '#1A2635',
         position: 'relative',
         overflow: 'hidden'
     };
 
     const starStyle = (top, left, size, delay) => ({
-      position: 'absolute',
-      top, left,
-      width: size,
-      height: size,
-      backgroundColor: '#fff',
-      borderRadius: '50%',
-      opacity: 0.15,
-      animation: `glow ${delay}s infinite alternate`
+        position: 'absolute',
+        top, left,
+        width: size,
+        height: size,
+        backgroundColor: hasLowVision ? '#000' : '#4A90D9',
+        borderRadius: '50%',
+        opacity: 0.08,
+        animation: `glow ${delay}s infinite alternate`
     });
 
     return (
@@ -63,49 +63,50 @@ export default function GamesScreen() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <button onClick={() => navigate('/dashboard')} style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: 'rgba(10, 22, 40, 0.05)', border: 'none', fontSize: '20px', cursor: 'pointer', color: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }} onMouseOver={(e) => e.currentTarget.style.backgroundColor = 'rgba(10, 22, 40, 0.1)'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(10, 22, 40, 0.05)'}>←</button>
                     <div>
-                      <h1 style={{ fontFamily: Fonts.heading, fontSize: '42px', fontWeight: 'bold', margin: '0 0 8px 0', color: C.amber }}>{t('dashboard.game_zone')}</h1>
-                      <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontWeight: 700, fontSize: '15px', letterSpacing: '0.02em' }}>
-                        {t('dashboard.ready_to_learn')} — Master your skills through play!
-                      </p>
+                        <h1 style={{ fontFamily: Fonts.heading, fontSize: '42px', fontWeight: 'bold', margin: '0 0 8px 0', color: '#2563EB' }}>{t('dashboard.game_zone')}</h1>
+                        <p style={{ margin: 0, color: '#64748B', fontWeight: 700, fontSize: '15px', letterSpacing: '0.02em' }}>
+                            {t('dashboard.ready_to_learn')} — Master your skills through play!
+                        </p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 800, color: C.amber, textTransform: 'uppercase' }}>Daily Streak</div>
-                    <div style={{ fontSize: '18px', fontWeight: 800 }}>🔥 12 Days</div>
-                  </div>
-                  <LuminaLogo size={48} color={C.amber} />
+                    <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#F59E0B', textTransform: 'uppercase' }}>Daily Streak</div>
+                        <div style={{ fontSize: '18px', fontWeight: 800, color: '#1A2635' }}>🔥 12 Days</div>
+                    </div>
+                    <LuminaLogo size={48} color={C.amber} />
                 </div>
             </header>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '32px', position: 'relative', zIndex: 2 }}>
                 {games.map(game => (
-                    <div 
+                    <div
                         key={game.id}
                         onClick={() => navigate(game.path)}
                         className="glass-card card-lift"
                         style={{
                             padding: '40px 32px',
-                            border: hasLowVision ? '2px solid #FFF' : `1.5px solid rgba(255,255,255,0.1)`,
+                            border: hasLowVision ? '2px solid #000' : `2px solid rgba(74, 144, 217, 0.2)`,
                             cursor: 'pointer',
                             textAlign: 'center',
                             display: 'flex',
                             flexDirection: 'column',
                             alignItems: 'center',
                             gap: '16px',
-                            background: 'rgba(255,255,255,0.05)',
+                            background: 'rgba(255, 255, 255, 0.5)',
+                            backdropFilter: 'blur(10px)',
                         }}
                     >
-                        <div style={{ 
-                          fontSize: '72px', 
-                          filter: `drop-shadow(0 12px 24px ${game.color}66)`,
-                          marginBottom: '8px',
-                          transform: 'scale(1.1)'
+                        <div style={{
+                            fontSize: '72px',
+                            filter: `drop-shadow(0 12px 24px ${game.color}66)`,
+                            marginBottom: '8px',
+                            transform: 'scale(1.1)'
                         }}>{game.icon}</div>
-                        <h2 style={{ fontFamily: Fonts.heading, fontSize: '24px', fontWeight: 'bold', margin: 0, color: '#fff' }}>{game.name}</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '14px', lineHeight: 1.6, fontWeight: 600 }}>{game.desc}</p>
+                        <h2 style={{ fontFamily: Fonts.heading, fontSize: '24px', fontWeight: 'bold', margin: 0, color: '#1A2635' }}>{game.name}</h2>
+                        <p style={{ color: '#64748B', fontSize: '14px', lineHeight: 1.6, fontWeight: 600 }}>{game.desc}</p>
                         <button className="btn-premium" style={{ marginTop: 'auto', padding: '12px 32px', fontSize: '14px', width: '100%' }}>
-                          {t('common.play')} →
+                            {t('common.play')} →
                         </button>
                     </div>
                 ))}

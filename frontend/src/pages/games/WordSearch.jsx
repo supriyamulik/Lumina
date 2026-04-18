@@ -2,10 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GameContainer from '../../components/games/GameContainer';
 import { useProfile } from '../../contexts/ProfileContext';
 import { useTranslation } from 'react-i18next';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
 
 export default function WordSearch() {
   const { profile } = useProfile();
   const { t } = useTranslation();
+  const { playSuccess, playVictory } = useSoundEffects();
   const [grid, setGrid] = useState([]);
   const [words, setWords] = useState([]);
   const [found, setFound] = useState([]);
@@ -33,7 +35,7 @@ export default function WordSearch() {
     currentWords.forEach((word, wordIdx) => {
       const row = wordIdx;
       for (let i = 0; i < word.length; i++) {
-          newGrid[row][i] = word[i];
+        newGrid[row][i] = word[i];
       }
     });
 
@@ -59,6 +61,7 @@ export default function WordSearch() {
 
     const selectedWord = newSelection.map(s => s.char).join('');
     if (words.includes(selectedWord)) {
+      playSuccess();
       setFound(f => [...f, selectedWord]);
       setSelection([]);
     } else if (selectedWord.length > 10) {
@@ -70,7 +73,7 @@ export default function WordSearch() {
     <div style={{ padding: '20px', width: '100%', maxWidth: '800px', maxHeight: '100%', overflowY: 'auto', textAlign: 'center', fontFamily: isDyslexic ? 'OpenDyslexic, sans-serif' : 'Nunito, sans-serif' }}>
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
         {words.map(w => (
-          <span key={w} style={{ 
+          <span key={w} style={{
             textDecoration: found.includes(w) ? 'line-through' : 'none',
             color: found.includes(w) ? '#94A3B8' : '#1A7A62',
             fontWeight: 'bold',

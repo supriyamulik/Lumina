@@ -5,6 +5,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { ProgressProvider } from './contexts/ProgressContext';
+import { AccessibilityProvider } from './contexts/AccessibilityContext';
+import { LearningAssistantProvider } from './contexts/LearningAssistantContext';
+import GlobalAssistant from './components/GlobalAssistant';
 
 import Login from './pages/Login';
 import Register from './pages/auth/Register';
@@ -53,18 +56,18 @@ const theme = createTheme({
 function AdminRoute({ children }) {
   const { currentUser, loading, studentUser } = useAuth();
   const hasLocalStudent = !!localStorage.getItem('studentUser');
-  
+
   if (loading) return null;
-  
+
   // No teacher logged in? Redirect to login
   if (!currentUser) return <Navigate to="/login" />;
-  
+
   // A student logged in? They can't see admin pages
   // 🚀 FIX: Only block if NO teacher is present.
   if ((studentUser || hasLocalStudent) && !currentUser) {
     return <Navigate to="/dashboard" />;
   }
-  
+
   return children;
 }
 
@@ -73,7 +76,7 @@ function DashboardRoute({ children }) {
   const hasLocalStudent = !!localStorage.getItem('studentUser');
 
   if (loading) return null;
-  
+
   // ⚡ PRIORITY: If a Teacher hits a student route, send them to their console.
   if (currentUser && !studentUser) {
     return <Navigate to="/teacher-dashboard" replace />;
@@ -89,109 +92,114 @@ function DashboardRoute({ children }) {
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <AuthProvider>
-        <ProfileProvider>
-          <ProgressProvider>
-            <Router>
-              <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Teacher/Parent Routes */}
-              <Route
-                path="/teacher-dashboard"
-                element={
-                  <AdminRoute>
-                    <TeacherDashboard />
-                  </AdminRoute>
-                }
-              />
-              <Route
-                path="/student/:id"
-                element={
-                  <AdminRoute>
-                    <StudentDetail />
-                  </AdminRoute>
-                }
-              />
+    <AccessibilityProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <AuthProvider>
+          <ProfileProvider>
+            <ProgressProvider>
+              <LearningAssistantProvider>
+                <Router>
+                  <Routes>
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/register" element={<Register />} />
 
-              {/* Student Routes - No Setup Needed for Child */}
-              <Route
-                path="/dashboard"
-                element={
-                  <DashboardRoute>
-                    <StudentDashboard />
-                  </DashboardRoute>
-                }
-              />
-              <Route
-                path="/test-services"
-                element={
-                  <AdminRoute>
-                    <TestServices />
-                  </AdminRoute>
-                }
-              />
-              <Route path="/test-backend" element={<TestBackend />} />
-              <Route path="/" element={<Landing />} />
-              <Route path="/lessons" element={
-                <DashboardRoute><ContentViewer /></DashboardRoute>
-              } />
-              <Route path="/subjects" element={
-                <DashboardRoute><SubjectsScreen /></DashboardRoute>
-              } />
-              <Route path="/chapters/:subjectId" element={
-                <DashboardRoute><ChaptersScreen /></DashboardRoute>
-              } />
-              <Route path="/lesson/:lessonId" element={
-                <DashboardRoute><LessonPlayer /></DashboardRoute>
-              } />
-              <Route path="/game/word-jump" element={
-                <DashboardRoute><WordJump /></DashboardRoute>
-              } />
-              <Route path="/game/focus-flash" element={
-                <DashboardRoute><FocusFlash /></DashboardRoute>
-              } />
-              <Route path="/game/phonetic-pop" element={
-                <DashboardRoute><PhoneticPop /></DashboardRoute>
-              } />
-              <Route path="/game/sign-match" element={
-                <DashboardRoute><SignMatch /></DashboardRoute>
-              } />
-              <Route path="/games" element={
-                <DashboardRoute><GamesScreen /></DashboardRoute>
-              } />
-              <Route path="/game/math-race" element={
-                <DashboardRoute><MathRace /></DashboardRoute>
-              } />
-              <Route path="/game/memory-match" element={
-                <DashboardRoute><MemoryMatch /></DashboardRoute>
-              } />
-              <Route path="/game/word-search" element={
-                <DashboardRoute><WordSearch /></DashboardRoute>
-              } />
-              <Route path="/game/emoji-emotion" element={
-                <DashboardRoute><EmojiEmotion /></DashboardRoute>
-              } />
-              <Route path="/library" element={
-                <DashboardRoute><EBookLibrary /></DashboardRoute>
-              } />
-              <Route path="/reader/:bookId" element={
-                <DashboardRoute><EBookReader /></DashboardRoute>
-              } />
-              <Route path="/labs/:labId" element={
-                <DashboardRoute><LabPage /></DashboardRoute>
-              } />
-              <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-            <GlobalDiya />
-            </Router>
-          </ProgressProvider>
-        </ProfileProvider>
-      </AuthProvider>
-    </ThemeProvider>
+                    {/* Teacher/Parent Routes */}
+                    <Route
+                      path="/teacher-dashboard"
+                      element={
+                        <AdminRoute>
+                          <TeacherDashboard />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route
+                      path="/student/:id"
+                      element={
+                        <AdminRoute>
+                          <StudentDetail />
+                        </AdminRoute>
+                      }
+                    />
+
+                    {/* Student Routes - No Setup Needed for Child */}
+                    <Route
+                      path="/dashboard"
+                      element={
+                        <DashboardRoute>
+                          <StudentDashboard />
+                        </DashboardRoute>
+                      }
+                    />
+                    <Route
+                      path="/test-services"
+                      element={
+                        <AdminRoute>
+                          <TestServices />
+                        </AdminRoute>
+                      }
+                    />
+                    <Route path="/test-backend" element={<TestBackend />} />
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/lessons" element={
+                      <DashboardRoute><ContentViewer /></DashboardRoute>
+                    } />
+                    <Route path="/subjects" element={
+                      <DashboardRoute><SubjectsScreen /></DashboardRoute>
+                    } />
+                    <Route path="/chapters/:subjectId" element={
+                      <DashboardRoute><ChaptersScreen /></DashboardRoute>
+                    } />
+                    <Route path="/lesson/:lessonId" element={
+                      <DashboardRoute><LessonPlayer /></DashboardRoute>
+                    } />
+                    <Route path="/game/word-jump" element={
+                      <DashboardRoute><WordJump /></DashboardRoute>
+                    } />
+                    <Route path="/game/focus-flash" element={
+                      <DashboardRoute><FocusFlash /></DashboardRoute>
+                    } />
+                    <Route path="/game/phonetic-pop" element={
+                      <DashboardRoute><PhoneticPop /></DashboardRoute>
+                    } />
+                    <Route path="/game/sign-match" element={
+                      <DashboardRoute><SignMatch /></DashboardRoute>
+                    } />
+                    <Route path="/games" element={
+                      <DashboardRoute><GamesScreen /></DashboardRoute>
+                    } />
+                    <Route path="/game/math-race" element={
+                      <DashboardRoute><MathRace /></DashboardRoute>
+                    } />
+                    <Route path="/game/memory-match" element={
+                      <DashboardRoute><MemoryMatch /></DashboardRoute>
+                    } />
+                    <Route path="/game/word-search" element={
+                      <DashboardRoute><WordSearch /></DashboardRoute>
+                    } />
+                    <Route path="/game/emoji-emotion" element={
+                      <DashboardRoute><EmojiEmotion /></DashboardRoute>
+                    } />
+                    <Route path="/library" element={
+                      <DashboardRoute><EBookLibrary /></DashboardRoute>
+                    } />
+                    <Route path="/reader/:bookId" element={
+                      <DashboardRoute><EBookReader /></DashboardRoute>
+                    } />
+                    <Route path="/labs/:labId" element={
+                      <DashboardRoute><LabPage /></DashboardRoute>
+                    } />
+                    <Route path="*" element={<Navigate to="/" />} />
+                  </Routes>
+                  <GlobalAssistant />
+                  <GlobalDiya />
+                </Router>
+              </LearningAssistantProvider>
+            </ProgressProvider>
+          </ProfileProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </AccessibilityProvider>
   );
 }
 

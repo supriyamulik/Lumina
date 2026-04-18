@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Phaser from 'phaser';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useProfile } from '../../contexts/ProfileContext';
+import { useSoundEffects } from '../../hooks/useSoundEffects';
 import { logStudentEvent } from '../../services/behaviorService';
 
 const TARGET_WORDS = ['CAT', 'SUN', 'DOG', 'HAT', 'PEN'];
@@ -10,6 +11,7 @@ export default function WordJump() {
   const containerRef = useRef(null);
   const gameRef = useRef(null);
   const { profile } = useProfile();
+  const { playSuccess, playError, playVictory, playCombo } = useSoundEffects();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -34,6 +36,12 @@ export default function WordJump() {
   const showTimer = iConf.showTimer; // specifically true for ADHD
   const useAudioHints = gConf.audioHints;
 
+  // Store sound functions in ref to access from Phaser scene
+  const soundFunctionsRef = useRef({ playSuccess, playError, playVictory, playCombo });
+  useEffect(() => {
+    soundFunctionsRef.current = { playSuccess, playError, playVictory, playCombo };
+  }, [playSuccess, playError, playVictory, playCombo]);
+
   // Speak function
   const speakText = (text) => {
     if (useAudioHints && window.speechSynthesis) {
@@ -50,7 +58,7 @@ export default function WordJump() {
     let currentTarget = TARGET_WORDS[Math.floor(Math.random() * TARGET_WORDS.length)];
     let currentSpelled = "";
     let currentScore = 0;
-    
+
     setTargetWord(currentTarget);
     if (useAudioHints) speakText("Spell the word: " + currentTarget);
 
@@ -75,7 +83,7 @@ export default function WordJump() {
 
         // Spawn letters repeatedly
         const spawnDelay = isADHD ? 800 : (isDyslexia ? 2000 : 1200);
-        
+
         this.spawnTimer = this.time.addEvent({
           delay: spawnDelay,
           callback: this.spawnLetter,
@@ -87,14 +95,14 @@ export default function WordJump() {
       spawnLetter() {
         const x = Phaser.Math.Between(50, this.scale.width - 50);
         const y = -50;
-        
+
         // 50% chance to spawn a required letter, 50% random
         const needsLetter = currentTarget[currentSpelled.length];
         const isTarget = Math.random() > 0.5 && needsLetter;
-        
+
         const randomChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        const char = isTarget 
-          ? needsLetter 
+        const char = isTarget
+          ? needsLetter
           : randomChars.charAt(Math.floor(Math.random() * randomChars.length));
 
         // Styles
@@ -105,7 +113,7 @@ export default function WordJump() {
 
         // Create container for bubble + text
         const bubble = this.add.circle(0, 0, uiConf.highContrast ? 50 : 40, bgColor);
-        
+
         // High contrast gets an outline
         if (uiConf.highContrast) {
           bubble.setStrokeStyle(4, 0xffffff);
@@ -122,15 +130,15 @@ export default function WordJump() {
 
         const container = this.add.container(x, y, [bubble, text]);
         container.setSize(80, 80);
-        
+
         // Enable physics/interaction
         this.physics.world.enable(container);
         container.body.setVelocityY(speed);
-        
+
         container.setInteractive();
-        
+
         container.on('pointerdown', () => this.handleLetterSelect(container, char));
-        
+
         if (isDyslexia) {
           // Extra hint: gentle pulse
           this.tweens.add({
@@ -148,34 +156,36 @@ export default function WordJump() {
 
       handleLetterSelect(container, char) {
         if (gameOver) return;
-        
+
         if (useAudioHints && char) {
-           speakText(char);
+          speakText(char);
         }
 
         const nextNeeded = currentTarget[currentSpelled.length];
-        
+
         if (char === nextNeeded) {
           // Correct!
+          soundFunctionsRef.current.playSuccess();
           currentSpelled += char;
           setSpelledWord(currentSpelled);
-          
+
           // Flashy feedback for ADHD
           if (isADHD) {
             this.cameras.main.flash(200, 0, 255, 0, 0.2);
           }
-          
+
           container.destroy();
-          
+
           if (currentSpelled === currentTarget) {
             // Word complete
+            soundFunctionsRef.current.playVictory();
             currentScore += 10;
             if (isADHD && timeLeft > 0) currentScore += 5; // speed bonus
-            
+
             setScore(currentScore);
             setFeedback("Awesome! +10");
             if (useAudioHints) speakText("Awesome!");
-            
+
             setTimeout(() => {
               setFeedback("");
               currentTarget = TARGET_WORDS[Math.floor(Math.random() * TARGET_WORDS.length)];
@@ -185,11 +195,13 @@ export default function WordJump() {
               if (useAudioHints) speakText("Spell: " + currentTarget);
             }, 1500);
           } else {
+            soundFunctionsRef.current.playCombo();
             setFeedback("Good!");
             setTimeout(() => setFeedback(""), 800);
           }
         } else {
           // Wrong letter
+          soundFunctionsRef.current.playError();
           setFeedback("Oops! Need " + nextNeeded);
           container.destroy();
           setTimeout(() => setFeedback(""), 1000);
@@ -201,7 +213,7 @@ export default function WordJump() {
 
       update() {
         if (gameOver) return;
-        
+
         // Cleanup off-screen safely
         this.letters = this.letters.filter(l => {
           if (!l.active) return false;
@@ -243,7 +255,7 @@ export default function WordJump() {
   // Timer loop for ADHD
   useEffect(() => {
     if (!showTimer || gameOver) return;
-    
+
     if (timeLeft <= 0) {
       setGameOver(true);
       if (gameRef.current) {
@@ -282,13 +294,13 @@ export default function WordJump() {
 
   return (
     <div style={{ minHeight: '100vh', background: isDark ? '#000' : '#F7F6F2', fontFamily: uiConf.fontFamily || 'Nunito, sans-serif' }}>
-      
+
       {/* REACT OVERLAY UI */}
       <div style={{ padding: '20px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button onClick={quitGame} style={{ background: 'none', border: 'none', fontSize: 18, fontWeight: 'bold', color: overlayColor, cursor: 'pointer' }}>
           ← Back
         </button>
-        
+
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: 20, color: overlayColor, fontWeight: 'bold' }}>Find the letters for:</div>
           <div style={{ fontSize: 48, fontWeight: 900, color: isDark ? '#FFD700' : '#E8920C', letterSpacing: 8 }}>
@@ -327,19 +339,19 @@ export default function WordJump() {
       )}
 
       {/* PHASER CANVAS TARGET */}
-      <div 
-        ref={containerRef} 
-        style={{ 
-          width: '95%', 
-          maxWidth: 900, 
+      <div
+        ref={containerRef}
+        style={{
+          width: '95%',
+          maxWidth: 900,
           height: 'auto',
           aspectRatio: '16/9',
           maxHeight: '60vh',
-          margin: '0 auto', 
-          borderRadius: 24, 
-          overflow: 'hidden', 
-          boxShadow: isDark ? '0 0 0 4px #FFF' : '0 20px 40px rgba(0,0,0,0.1)' 
-        }} 
+          margin: '0 auto',
+          borderRadius: 24,
+          overflow: 'hidden',
+          boxShadow: isDark ? '0 0 0 4px #FFF' : '0 20px 40px rgba(0,0,0,0.1)'
+        }}
       />
     </div>
   );
