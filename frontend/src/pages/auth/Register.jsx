@@ -58,7 +58,7 @@ export default function Register() {
             Create Account
           </Typography>
           <Typography variant="subtitle1" gutterBottom align="center" color="text.secondary">
-            Join the AdaptLearn platform
+            Join the Lumina platform
           </Typography>
 
           {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}

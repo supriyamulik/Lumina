@@ -151,7 +151,7 @@ export default function ProfileSetup() {
       <Container maxWidth="md">
         <Paper elevation={3} sx={{ p: { xs: 3, md: 5 }, borderRadius: 4 }}>
           <Typography variant="h4" gutterBottom align="center" color="primary" sx={{ fontWeight: 'bold' }}>
-            Setup Your AdaptLearn Profile
+            Setup Your Lumina Profile
           </Typography>
           
           <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4, mt: 3 }}>

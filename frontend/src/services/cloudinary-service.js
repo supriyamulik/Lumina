@@ -24,7 +24,7 @@ class CloudinaryService {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', this.uploadPreset);
-      formData.append('folder', `adaptlearn/${folder}`);
+      formData.append('folder', `lumina/${folder}`);
 
       const response = await axios.post(
         `https://api.cloudinary.com/v1_1/${this.cloudName}/upload`,

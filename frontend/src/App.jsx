@@ -26,6 +26,7 @@ import GamesScreen from './pages/student/GamesScreen';
 import MathRace from './pages/games/MathRace';
 import MemoryMatch from './pages/games/MemoryMatch';
 import WordSearch from './pages/games/WordSearch';
+import EmojiEmotion from './pages/games/EmojiEmotion';
 import EBookLibrary from './pages/student/EBookLibrary';
 import EBookReader from './pages/student/EBookReader';
 import LabPage from './pages/labs/LabPage';
@@ -170,6 +171,9 @@ function App() {
               } />
               <Route path="/game/word-search" element={
                 <DashboardRoute><WordSearch /></DashboardRoute>
+              } />
+              <Route path="/game/emoji-emotion" element={
+                <DashboardRoute><EmojiEmotion /></DashboardRoute>
               } />
               <Route path="/library" element={
                 <DashboardRoute><EBookLibrary /></DashboardRoute>

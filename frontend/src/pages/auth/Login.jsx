@@ -41,7 +41,7 @@ export default function Login() {
       <Box sx={{ mt: 8, mb: 4 }}>
         <Paper elevation={3} sx={{ p: 4 }}>
           <Typography variant="h4" component="h1" gutterBottom align="center">
-            AdaptLearn
+            Lumina
           </Typography>
           <Typography variant="subtitle1" gutterBottom align="center" color="text.secondary">
             Sign in to continue

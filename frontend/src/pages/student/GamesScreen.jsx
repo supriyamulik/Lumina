@@ -33,6 +33,7 @@ export default function GamesScreen() {
         { id: 'focus-flash', name: t('games.focus_flash'), path: '/game/focus-flash', icon: '⚡', color: '#10B981', desc: t('games.focus_flash_desc') },
         { id: 'phonetic-pop', name: t('games.phonetic_pop'), path: '/game/phonetic-pop', icon: '🫧', color: '#3B82F6', desc: t('games.phonetic_pop_desc') },
         { id: 'sign-match', name: t('games.sign_match'), path: '/game/sign-match', icon: '🍎', color: '#F59E0B', desc: t('games.sign_match_desc') },
+        { id: 'emoji-emotion', name: 'Emotion Mirror', path: '/game/emoji-emotion', icon: '🪞', color: '#E91E63', desc: 'Copy the facial expressions to win! 😃' },
     ];
 
     const containerStyle = {
