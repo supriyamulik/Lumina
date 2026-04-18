@@ -4,6 +4,105 @@ import { logBehavior } from './firestoreService.js';
 let _sessionBuffer = [];
 let _autoSaveInterval = null;
 
+// ==================== LEO ADAPTIVE TRACKING ====================
+// Tracks patterns specific to Leo's adaptive response system
+let _leoState = {
+  startTime: Date.now(),
+  lastInteractionTime: Date.now(),
+  idleThreshold: 8000,
+  hesitationThreshold: 3000,
+  errors: [],
+  hesitations: [],
+};
+
+/**
+ * Initialize Leo behavior tracking
+ */
+export const initLeoTracking = () => {
+  _leoState = {
+    startTime: Date.now(),
+    lastInteractionTime: Date.now(),
+    idleThreshold: 8000,
+    hesitationThreshold: 3000,
+    errors: [],
+    hesitations: [],
+  };
+};
+
+/**
+ * Log an error for Leo to detect patterns
+ */
+export const logLeoError = (errorType, context = {}) => {
+  _leoState.errors.push({
+    type: errorType,
+    timestamp: Date.now(),
+    context,
+  });
+
+  // Check for repeated errors (same type within 10 seconds)
+  const recentErrors = _leoState.errors.filter(
+    (e) => Date.now() - e.timestamp < 10000
+  );
+  return recentErrors.length >= 2;
+};
+
+/**
+ * Detect hesitation (long thinking time)
+ */
+export const detectHesitation = () => {
+  const timeSinceLast = Date.now() - _leoState.lastInteractionTime;
+  if (timeSinceLast > _leoState.hesitationThreshold) {
+    _leoState.hesitations.push({
+      timestamp: Date.now(),
+      duration: timeSinceLast,
+    });
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Update last interaction time
+ */
+export const updateLeoInteraction = () => {
+  _leoState.lastInteractionTime = Date.now();
+};
+
+/**
+ * Get Leo behavior state for API call
+ */
+export const getLeoAdaptiveState = () => {
+  const now = Date.now();
+  const timeSinceLast = now - _leoState.lastInteractionTime;
+  const recentErrors = _leoState.errors.filter((e) => now - e.timestamp < 10000);
+  const timeOnTask = now - _leoState.startTime;
+
+  return {
+    is_idle: timeSinceLast > _leoState.idleThreshold,
+    is_hesitating: timeSinceLast > _leoState.hesitationThreshold,
+    time_since_last_action_ms: timeSinceLast,
+    time_on_task_ms: timeOnTask,
+    recent_error_count: recentErrors.length,
+    confidence_level: calculateLeoConfidence(),
+    engagement: recentErrors.length > 3 ? "struggling" : timeOnTask > 60000 ? "engaged" : "exploring",
+  };
+};
+
+/**
+ * Calculate confidence (0-1 scale)
+ */
+const calculateLeoConfidence = () => {
+  if (_leoState.errors.length === 0) return 0.8;
+  const recentErrors = _leoState.errors.filter(
+    (e) => Date.now() - e.timestamp < 30000
+  );
+  if (recentErrors.length > 3) return 0.3;
+  if (recentErrors.length > 1) return 0.5;
+  return 0.8;
+};
+
+// ==================== END LEO ADAPTIVE TRACKING ====================
+
 /**
  * Starts a new tracking session for a student.
  * @param {string} studentId - The student's ID

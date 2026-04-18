@@ -1,4 +1,18 @@
 {
+  "emulators": {
+    "functions": {
+      "port": 5001
+    },
+    "firestore": {
+      "port": 9876
+    },
+    "storage": {
+      "port": 9877
+    },
+    "hub": {
+      "port": 9899
+    }
+  },
   "functions": {
     "source": "functions",
     "predeploy": [],
