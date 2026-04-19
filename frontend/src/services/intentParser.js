@@ -16,6 +16,7 @@ export const INTENT_TYPES = {
     SHOW_PROGRESS: 'show_progress',
     SHOW_SUBJECTS: 'show_subjects',
     PLAY_GAME: 'play_game',
+    NAVIGATE_FEATURE: 'navigate_feature',
     HELP: 'help',
     REPEAT: 'repeat',
     UNKNOWN: 'unknown',
@@ -109,6 +110,18 @@ export const parseIntentFallback = (userInput) => {
         };
     }
 
+    // Global Feature Navigation
+    if (input.match(/login|onboarding|registration|teacher|console|admin|home/)) {
+        return {
+            intent: INTENT_TYPES.NAVIGATE_FEATURE,
+            target: input.includes('teacher') || input.includes('admin') || input.includes('console') 
+                    ? 'teacher-dashboard' 
+                    : input.includes('login') ? 'login' : 'home',
+            confidence: 0.8,
+            explanation: 'User wants to go to a app feature',
+        };
+    }
+
     // Play game
     if (input.match(/game|play|fun|game.*time/)) {
         return {
@@ -179,6 +192,7 @@ Available intent types:
 - PREVIOUS_LESSON: Go to previous lesson
 - SHOW_PROGRESS: Show student progress
 - SHOW_SUBJECTS: Show all subjects
+- NAVIGATE_FEATURE: Navigate to a global app feature (login, home, teacher-dashboard)
 - PLAY_GAME: Play a game
 - HELP: Ask for help
 - REPEAT: Repeat the last thing

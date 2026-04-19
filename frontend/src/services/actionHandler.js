@@ -6,6 +6,7 @@
 
 import lessonNavService from './lessonNavigationService';
 import { INTENT_TYPES } from './intentParser';
+import { clickLeoElement } from '../utils/uiMapper';
 
 /**
  * Execute intent-based action
@@ -37,6 +38,9 @@ export const executeAction = async (intent, context = {}) => {
 
             case INTENT_TYPES.PLAY_GAME:
                 return handlePlayGame(context);
+
+            case INTENT_TYPES.NAVIGATE_FEATURE:
+                return handleNavigateFeature(intent, context);
 
             case INTENT_TYPES.HELP:
                 return handleHelp();
@@ -283,6 +287,39 @@ const handlePlayGame = (context) => {
 };
 
 /**
+ * Navigate to a specific app feature (login, teacher-dashboard, etc)
+ */
+const handleNavigateFeature = (intent, context) => {
+    const feature = (intent.target || '').toLowerCase();
+    
+    const featureMap = {
+        'login': { route: '/login', label: 'the login screen' },
+        'teacher-dashboard': { route: '/teacher-dashboard', label: 'the teacher console' },
+        'home': { route: '/', label: 'the home page' },
+        'onboarding': { route: '/onboarding', label: 'the onboarding journey' }
+    };
+
+    const match = featureMap[feature] || Object.values(featureMap).find(f => feature.includes(f.label));
+
+    if (!match) {
+        return {
+            action: 'respond',
+            response: `I'm not sure how to go to "${feature}". I can take you to the login screen, home, or the teacher console.`,
+            navigationRequired: false
+        };
+    }
+
+    context.navigate?.(match.route);
+
+    return {
+        action: 'navigate',
+        response: `Of course! Taking you to ${match.label} now.`,
+        navigationRequired: true,
+        target: match.route
+    };
+};
+
+/**
  * Help
  */
 const handleHelp = () => {
@@ -323,7 +360,32 @@ export const formatActionResult = (actionResult) => {
     };
 };
 
+/**
+ * Executes a direct action from Claude (e.g. click_element)
+ */
+export const executeClaudeAction = (claudeResult, context = {}) => {
+    console.log('[actionHandler] Executing Claude action:', claudeResult.action);
+    
+    if (claudeResult.action === 'click_element' && claudeResult.element_id) {
+        const success = clickLeoElement(claudeResult.element_id);
+        if (success) {
+            return {
+                message: claudeResult.response,
+                requiresNavigation: false,
+                metadata: { action: 'click_element', target: claudeResult.element_id }
+            };
+        }
+    }
+
+    return formatActionResult({
+        response: claudeResult.response,
+        navigationRequired: claudeResult.action === 'navigate',
+        action: claudeResult.action
+    });
+};
+
 export default {
     executeAction,
+    executeClaudeAction,
     formatActionResult,
 };

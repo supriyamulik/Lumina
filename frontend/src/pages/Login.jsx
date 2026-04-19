@@ -232,11 +232,14 @@ export default function Login() {
     pinRefs[lastFilled].current?.focus();
   };
 
+  // Removed auto-focus to prevent keyboard popup/cursor on load
+  /*
   useEffect(() => {
     if (activeTab === 'student' && pinRefs[0].current) {
         pinRefs[0].current.focus();
     }
   }, [activeTab]);
+  */
 
   // ✅ REDIRECT IF ALREADY LOGGED IN:
   // If the user visits /login but has a session, send them where they belong.

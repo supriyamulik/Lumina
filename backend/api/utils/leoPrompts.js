@@ -57,8 +57,9 @@ Match your response to the behavior_state:
 ALWAYS RESPOND WITH VALID JSON ONLY:
 
 {
-  "action": "hint|simplify|encourage|re_engage|support|correct|error_recover",
+  "action": "hint|simplify|encourage|re_engage|support|correct|error_recover|click_element",
   "response": "Exactly what Leo says to student (max 50 words)",
+  "element_id": "the_id_of_the_element_to_click_if_action_is_click_element",
   "ui_changes": {
     "font_size": "normal|large|extra_large",
     "font_family": "default|open_dyslexic",
@@ -108,6 +109,9 @@ ${behaviorDescription}
 Confidence Level: ${((behaviorState.confidence_level || 0.5) * 100).toFixed(0)}%
 Engagement: ${behaviorState.engagement || 'exploring'}
 Time Active: ${((behaviorState.time_on_task_ms || 0) / 1000).toFixed(0)}s
+
+AVAILABLE_UI_ELEMENTS:
+${(behaviorState.available_elements || []).map(el => `- [${el.id}] "${el.text}" (${el.tag})`).join('\n') || 'No interactive elements detected.'}
 ---`;
 }
 

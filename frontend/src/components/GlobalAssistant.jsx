@@ -6,7 +6,8 @@ import leoService from '../services/leoService';
 import { updateLeoInteraction, logLeoError, detectHesitation, initLeoTracking } from '../services/behaviorTracker';
 import { applyUIChanges, injectAdaptationStyles } from '../utils/uiAdaptation';
 import { parseUserIntent } from '../services/intentParser';
-import { executeAction, formatActionResult } from '../services/actionHandler';
+import { executeAction, executeClaudeAction, formatActionResult } from '../services/actionHandler';
+import { getInteractiveElements } from '../utils/uiMapper';
 import './GlobalAssistant.css';
 
 /**
@@ -110,25 +111,20 @@ export default function GlobalAssistant({ studentProfile = {}, lessonContext = {
 
         recognitionRef.current = recognition;
 
-        // Space bar shortcut to toggle listening
+        // Control key shortcut to toggle listening
         const handleKeyDown = (e) => {
-            if (e.code === 'Space' || e.key === ' ') {
+            if (e.key === 'Control') {
                 // Ignore if user is typing in an input or textarea
                 const active = document.activeElement;
                 if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) {
                     return;
                 }
 
-                e.preventDefault(); // Prevent page scroll
-                console.log('[Leo] Space bar detected, toggling listening...');
+                e.preventDefault(); // Prevent accidental browser behavior
+                console.log('[Leo] Control key detected, toggling listening...');
                 
                 // Toggle logic
                 if (recognitionRef.current) {
-                    // Logic from toggleListening but needs to check current state
-                    // Note: accessing isListening inside this listener might need care with closures
-                    // but since useEffect runs once, we use a functional ref or just handle the state check
-                    // Actually, we can just trigger a click on the button or similar, 
-                    // or better, use a ref for the toggle function or just use the button ref.
                     const btn = document.querySelector('.leo-listen-btn');
                     if (btn) btn.click();
                 }
@@ -222,9 +218,14 @@ export default function GlobalAssistant({ studentProfile = {}, lessonContext = {
 
             // If it's a complex intent, also get Claude's thoughts
             if (intent.intent !== 'unknown' && intent.confidence > 0.5) {
+                // SCAN UI BEFORE SENDING
+                const availableElements = getInteractiveElements();
+                console.log('[Leo] Available UI elements:', availableElements.length);
+
                 const claudeResult = await leoService.sendToLeo({
                     user_input: userInput,
                     content: lessonContext,
+                    available_elements: availableElements,
                     student_profile: {
                         name: studentProfile.name || 'Student',
                         learning_level: studentProfile.learning_level || 'intermediate',
@@ -233,7 +234,11 @@ export default function GlobalAssistant({ studentProfile = {}, lessonContext = {
                 });
 
                 if (claudeResult.success) {
-                    leoResponse = claudeResult.response;
+                    const result = executeClaudeAction(claudeResult, {
+                        navigate,
+                        currentLessonId: lessonContext.lesson_id,
+                    });
+                    leoResponse = result.message;
                 }
             }
 

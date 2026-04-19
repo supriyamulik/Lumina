@@ -29,6 +29,7 @@ async function handleLeoAssist(req, res) {
             student_profile = {},
             behavior_state = {},
             lesson_context = {},
+            available_elements = [],
         } = req.body;
 
         // Validate input
@@ -55,6 +56,7 @@ async function handleLeoAssist(req, res) {
             recent_error_count: behavior_state.recent_error_count || 0,
             confidence_level: behavior_state.confidence_level || 0.5,
             engagement: behavior_state.engagement || 'exploring',
+            available_elements: available_elements || [],
         };
 
         // Log for debugging
@@ -169,7 +171,7 @@ async function handleParseIntent(req, res) {
         // Call Claude to parse intent
         const claudeResult = await callClaude(
             intentPrompt,
-            studentProfile,
+            { id: 'anonymous', name: 'Student' },
             {}
         );
 
@@ -224,6 +226,7 @@ Available intent types:
 - previous_lesson: Go to the previous lesson
 - show_progress: Show student progress
 - show_subjects: Show all subjects
+- navigate_feature: Navigate to a global app feature (login, teacher-dashboard, home)
 - play_game: Play a game
 - help: Ask for help/instructions
 - repeat: Repeat the last message

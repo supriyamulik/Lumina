@@ -19,6 +19,7 @@ export const sendToLeo = async ({
     content = {},
     student_profile = {},
     lesson_context = {},
+    available_elements = [],
 }) => {
     try {
         // Get current behavior state
@@ -37,6 +38,7 @@ export const sendToLeo = async ({
             },
             lesson_context,
             behavior_state,
+            available_elements,
             timestamp: new Date().toISOString(),
         };
 
