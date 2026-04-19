@@ -65,7 +65,7 @@ export default function GlobalAssistant({ studentProfile = {}, lessonContext = {
         };
     }, [isInitialized]);
 
-    // Set up speech recognition
+    // Set up speech recognition and keyboard shortcuts
     useEffect(() => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
@@ -110,8 +110,36 @@ export default function GlobalAssistant({ studentProfile = {}, lessonContext = {
 
         recognitionRef.current = recognition;
 
+        // Space bar shortcut to toggle listening
+        const handleKeyDown = (e) => {
+            if (e.code === 'Space' || e.key === ' ') {
+                // Ignore if user is typing in an input or textarea
+                const active = document.activeElement;
+                if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) {
+                    return;
+                }
+
+                e.preventDefault(); // Prevent page scroll
+                console.log('[Leo] Space bar detected, toggling listening...');
+                
+                // Toggle logic
+                if (recognitionRef.current) {
+                    // Logic from toggleListening but needs to check current state
+                    // Note: accessing isListening inside this listener might need care with closures
+                    // but since useEffect runs once, we use a functional ref or just handle the state check
+                    // Actually, we can just trigger a click on the button or similar, 
+                    // or better, use a ref for the toggle function or just use the button ref.
+                    const btn = document.querySelector('.leo-listen-btn');
+                    if (btn) btn.click();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+
         return () => {
             recognition.abort();
+            window.removeEventListener('keydown', handleKeyDown);
         };
     }, []);
 
@@ -122,11 +150,49 @@ export default function GlobalAssistant({ studentProfile = {}, lessonContext = {
      * 3. Get Leo response
      * 4. Speak response back
      */
+
+    /**
+     * Helper to extract 4 digits from spoken words
+     */
+    const extractPin = (text) => {
+        const numberMap = {
+            zero: '0', oh: '0', one: '1', two: '2', three: '3', four: '4', five: '5',
+            six: '6', seven: '7', eight: '8', nine: '9'
+        };
+        
+        // Replace words with digits
+        let sanitized = text.toLowerCase();
+        Object.keys(numberMap).forEach(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'g');
+            sanitized = sanitized.replace(regex, numberMap[word]);
+        });
+        
+        // Extract all digits
+        const digits = sanitized.replace(/\D/g, '');
+        return digits.length === 4 ? digits : null;
+    };
+
+    /**
+     * Handle user input with INTENT PARSING + ACTION EXECUTION
+     */
     const handleUserInput = async (userInput) => {
         updateLeoInteraction();
         detectHesitation();
 
         console.log('[Leo] User input:', userInput);
+        
+        // SPECIAL CASE: Voice PIN on Login Page
+        if (window.location.pathname === '/login') {
+            const pin = extractPin(userInput);
+            if (pin) {
+                console.log('[Leo] Detected 4-digit PIN via voice:', pin);
+                window.dispatchEvent(new CustomEvent('leo:voice-pin', { detail: { pin } }));
+                setLeoResponse(`Okay, checking PIN ${pin.split('').join(' ')}...`);
+                setMessages((prev) => [...prev, { role: 'user', text: `PIN ${pin}` }]);
+                return; // Skip normal intent parsing
+            }
+        }
+
         setMessages((prev) => [...prev, { role: 'user', text: userInput }]);
         setIsThinking(true);
 

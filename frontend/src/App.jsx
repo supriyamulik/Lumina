@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -47,8 +47,10 @@ function GlobalDiya() {
 
 function ConditionalGlobalAssistant() {
   const { studentUser, currentUser } = useAuth();
-  // Show GlobalAssistant if either a student or a teacher is logged in
-  return (studentUser || currentUser) ? <GlobalAssistant /> : null;
+  const location = useLocation();
+  // Show GlobalAssistant if a student/teacher is logged in OR we are on the login page
+  const shouldShow = studentUser || currentUser || location.pathname === '/login';
+  return shouldShow ? <GlobalAssistant /> : null;
 }
 
 const theme = createTheme({
@@ -213,6 +215,7 @@ function App() {
                   </Routes>
                   <ConditionalGlobalAssistant />
                   <GlobalDiya />
+                  <ArrowKeyToLogin />
                 </Router>
               </LearningAssistantProvider>
             </ProgressProvider>
@@ -221,6 +224,33 @@ function App() {
       </ThemeProvider>
     </AccessibilityProvider>
   );
+}
+
+function ArrowKeyToLogin() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        // Don't trigger if already on login page
+        if (location.pathname === '/login') return;
+        
+        // Don't trigger if user is typing in an input or textarea
+        const active = document.activeElement;
+        if (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable) {
+          return;
+        }
+        
+        console.log('[GlobalNav] Arrow key detected, navigating to login...');
+        navigate('/login');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [navigate, location.pathname]);
+
+  return null;
 }
 
 export default App;

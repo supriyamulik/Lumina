@@ -252,6 +252,31 @@ export default function Login() {
     }
   }, [currentUser, studentUser, authLoading]);
 
+  // Voice PIN Entry Listener (from Leo)
+  useEffect(() => {
+    const handleVoicePin = (e) => {
+      const { pin: voicePin } = e.detail;
+      console.log('[Login] Received voice PIN:', voicePin);
+      
+      // Update UI state (one digit per box)
+      const digits = voicePin.split('');
+      setPin(digits);
+      
+      // Provide audio feedback
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const msg = `Checking PIN: ${digits.join(' ')}`;
+        window.speechSynthesis.speak(new SpeechSynthesisUtterance(msg));
+      }
+      
+      // Submit the PIN
+      submitPin(voicePin);
+    };
+
+    window.addEventListener('leo:voice-pin', handleVoicePin);
+    return () => window.removeEventListener('leo:voice-pin', handleVoicePin);
+  }, []);
+
   return (
     <div style={styles.page}>
       <style>{`
