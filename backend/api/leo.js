@@ -3,7 +3,7 @@
  * Main backend handler for Leo adaptive assistant requests
  */
 
-const { callClaude } = require('./utils/claudeClient');
+const { callGroq: callClaude } = require('./utils/groqClient');
 const { generateContextualPrompt } = require('./utils/leoPrompts');
 
 /**
@@ -124,7 +124,6 @@ async function handleGetHint(req, res) {
 
         const hintInput = `I need help with ${activity_id}. ${JSON.stringify(attempt_context)}`;
 
-        const { callClaude } = require('./claudeClient');
         const result = await callClaude(
             hintInput,
             student_profile,
@@ -168,13 +167,6 @@ async function handleParseIntent(req, res) {
         const intentPrompt = buildIntentPrompt(user_input, context);
 
         // Call Claude to parse intent
-        const { callClaude } = require('./claudeClient');
-        const studentProfile = {
-            name: context.student_name || 'Student',
-            learning_level: 'intermediate',
-            language: 'en',
-        };
-
         const claudeResult = await callClaude(
             intentPrompt,
             studentProfile,

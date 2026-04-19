@@ -63,7 +63,7 @@ export const sendToLeo = async ({
             action: result.action || 'respond',
             response: result.response || 'I could not process that.',
             ui_changes: result.ui_changes || {},
-            voice: result.voice || { text: result.response, speed: 1.0 },
+            voice: result.voice || { text: result.response || 'I could not process that.', speed: 1.0 },
             success: true,
         };
     } catch (error) {

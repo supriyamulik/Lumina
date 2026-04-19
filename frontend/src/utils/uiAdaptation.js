@@ -212,7 +212,7 @@ export const injectAdaptationStyles = () => {
 
     @font-face {
       font-family: 'OpenDyslexic';
-      src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.4.3/fonts/OpenDyslexic-Regular.woff2') format('woff2');
+      src: url('https://cdn.jsdelivr.net/gh/antijingoist/open-dyslexic@latest/OpenDyslexic-Regular.woff2') format('woff2');
     }
   `;
 

@@ -41,15 +41,14 @@ import DiyaGuru from './components/DiyaGuru';
 
 function GlobalDiya() {
   const { studentUser, currentUser } = useAuth();
-  // Only show DiyaGuru for active student sessions when no teacher is logged in
-  return studentUser && !currentUser ? <DiyaGuru /> : null;
+  // Show DiyaGuru if either a student or a teacher is logged in
+  return (studentUser || currentUser) ? <DiyaGuru /> : null;
 }
 
 function ConditionalGlobalAssistant() {
   const { studentUser, currentUser } = useAuth();
-  // Only show GlobalAssistant for active student sessions when no teacher is logged in
-  // This ensures it won't appear on teacher dashboard
-  return studentUser && !currentUser ? <GlobalAssistant /> : null;
+  // Show GlobalAssistant if either a student or a teacher is logged in
+  return (studentUser || currentUser) ? <GlobalAssistant /> : null;
 }
 
 const theme = createTheme({

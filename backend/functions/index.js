@@ -20,15 +20,32 @@ const app = express();
 
 // ==================== MIDDLEWARE ====================
 
-// Body parser
+// 1. CORS (Must be at the very top for preflight to work)
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            console.warn('[CORS] Origin not allowed:', origin);
+            callback(null, true); // Fallback to true in dev, but log it
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
+// 2. Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// CORS
-app.use(cors({
-    origin: process.env.FRONTEND_URL || ['http://localhost:3000', 'http://localhost:5173'],
-    credentials: true,
-}));
 
 // Logger middleware
 app.use((req, res, next) => {
@@ -84,10 +101,14 @@ app.use((err, req, res, next) => {
 
 // ==================== SERVER START ====================
 
-// Start the Express server directly for development
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`
+// For Firebase deployment and emulators
+exports.api = functions.https.onRequest(app);
+
+// Start the Express server directly only if run with node directly and not by emulator
+if (require.main === module) {
+    const PORT = process.env.PORT || 5001;
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`
 ╔═══════════════════════════════════════╗
 ║     🐯 LEO BACKEND SERVICE READY 🐯    ║
 ║                                       ║
@@ -96,10 +117,6 @@ app.listen(PORT, '0.0.0.0', () => {
 ║  Claude Model: Groq (claude-compatible)║
 ║  Ready for requests!                  ║
 ╚═══════════════════════════════════════╝
-    `);
-});
-
-// For Firebase deployment
-if (process.env.NODE_ENV === 'production') {
-    exports.api = functions.http.onRequest(app);
+        `);
+    });
 }
