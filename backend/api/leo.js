@@ -9,15 +9,6 @@ const { generateContextualPrompt } = require('./utils/leoPrompts');
 /**
  * Main Leo assist endpoint handler
  * POST /api/leo-assist
- *
- * Request body:
- * {
- *   user_input: string,
- *   content: object,
- *   student_profile: { id, name, learning_level, language },
- *   behavior_state: { is_idle, is_hesitating, confidence_level, ... },
- *   lesson_context: object
- * }
  */
 async function handleLeoAssist(req, res) {
     try {
@@ -40,7 +31,6 @@ async function handleLeoAssist(req, res) {
             });
         }
 
-        // Build context for Claude
         const studentProfile = {
             id: student_profile.id || 'anonymous',
             name: student_profile.name || 'Student',
@@ -56,20 +46,18 @@ async function handleLeoAssist(req, res) {
             recent_error_count: behavior_state.recent_error_count || 0,
             confidence_level: behavior_state.confidence_level || 0.5,
             engagement: behavior_state.engagement || 'exploring',
+            // FIXED: pass available_elements into behaviorState so prompt receives them
             available_elements: available_elements || [],
         };
 
-        // Log for debugging
         console.log('[leoController] User:', studentProfile.name);
         console.log('[leoController] Input:', user_input.substring(0, 60));
-        console.log('[leoController] Behavior:', behaviorState);
+        console.log('[leoController] Available elements:', behaviorState.available_elements.length);
 
-        // Call Claude API
         const claudeResult = await callClaude(user_input, studentProfile, behaviorState);
 
         if (!claudeResult.success) {
-            console.error('[leoController] Claude error:', claudeResult.error);
-
+            console.error('[leoController] Groq error:', claudeResult.error);
             return res.status(200).json({
                 success: false,
                 action: 'error',
@@ -80,9 +68,7 @@ async function handleLeoAssist(req, res) {
 
         const leoResponse = claudeResult.data;
 
-        // Validate Leo response structure
         if (!leoResponse.response) {
-            console.warn('[leoController] Leo response missing "response" field');
             leoResponse.response = 'Let me help you with that.';
         }
 
@@ -90,25 +76,24 @@ async function handleLeoAssist(req, res) {
             leoResponse.action = 'respond';
         }
 
-        // Log response for monitoring
-        console.log('[leoController] Leo action:', leoResponse.action);
-        console.log('[leoController] Leo response:', leoResponse.response.substring(0, 50));
-
-        // Build final response
+        // FIXED: pass element_id through for click_element actions
         const finalResponse = {
             success: true,
             action: leoResponse.action,
             response: leoResponse.response,
+            element_id: leoResponse.element_id || null,   // NEW
             ui_changes: leoResponse.ui_changes || {},
             next_action: leoResponse.next_action || 'await_input',
             confidence: leoResponse.confidence_in_response || 0.5,
             timestamp: new Date().toISOString(),
         };
 
+        console.log('[leoController] Leo action:', finalResponse.action);
+        console.log('[leoController] Element ID:', finalResponse.element_id);
+
         res.status(200).json(finalResponse);
     } catch (error) {
         console.error('[leoController] Unhandled error:', error);
-
         res.status(500).json({
             success: false,
             error: 'Internal server error',
@@ -151,7 +136,7 @@ async function handleGetHint(req, res) {
 }
 
 /**
- * Parse user intent using Claude
+ * Parse user intent using Groq
  * POST /api/leo/parse-intent
  */
 async function handleParseIntent(req, res) {
@@ -165,10 +150,8 @@ async function handleParseIntent(req, res) {
             });
         }
 
-        // Build intent parsing prompt
         const intentPrompt = buildIntentPrompt(user_input, context);
 
-        // Call Claude to parse intent
         const claudeResult = await callClaude(
             intentPrompt,
             { id: 'anonymous', name: 'Student' },
@@ -176,9 +159,6 @@ async function handleParseIntent(req, res) {
         );
 
         if (!claudeResult.success) {
-            console.error('[leoController] Intent parse error:', claudeResult.error);
-
-            // Return fallback intent
             return res.status(200).json({
                 success: true,
                 intent: 'unknown',
@@ -198,15 +178,13 @@ async function handleParseIntent(req, res) {
         });
     } catch (error) {
         console.error('[leoController] Parse intent error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message,
-        });
+        res.status(500).json({ success: false, error: error.message });
     }
 }
 
 /**
- * Build prompt for Claude to parse user intent
+ * Build prompt for Groq to parse user intent
+ * FIXED: added full list of navigation targets and game/module intents
  */
 function buildIntentPrompt(userInput, context) {
     const contextStr = context.currentLesson
@@ -226,13 +204,19 @@ Available intent types:
 - previous_lesson: Go to the previous lesson
 - show_progress: Show student progress
 - show_subjects: Show all subjects
-- navigate_feature: Navigate to a global app feature (login, teacher-dashboard, home)
-- play_game: Play a game
-- help: Ask for help/instructions
+- navigate_feature: Navigate to a global app feature
+  (e.g., login, home, teacher-dashboard, games, flashcards,
+   stories, quick-quiz, draw-and-learn, leaderboard, settings)
+- play_game: Play a specific mini-game
+  (e.g., memory-match, sort-click, story-order, count-fast,
+   rhythm-tap, balloon-pop, shape-puzzle, color-trace)
+- open_module: Open a learning module
+  (e.g., flashcards, stories, draw-and-learn, quick-quiz)
+- help: Ask for help or instructions
 - repeat: Repeat the last message
 - unknown: Cannot determine
 
-Return ONLY valid JSON (no explanation):
+Return ONLY valid JSON (no explanation, no backticks):
 {
   "intent": "INTENT_TYPE",
   "target": "specific_target_if_any",

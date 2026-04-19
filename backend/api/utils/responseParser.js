@@ -1,6 +1,6 @@
 /**
  * RESPONSE PARSER
- * Validates and sanitizes Claude responses
+ * Validates and sanitizes Claude/Groq responses
  */
 
 /**
@@ -18,7 +18,7 @@ function validateLeoResponse(response) {
         errors.push('Missing "response" field');
     }
 
-    // Validate action type
+    // Validate action type — FIXED: added navigation/game actions
     const validActions = [
         'hint',
         'simplify',
@@ -28,10 +28,16 @@ function validateLeoResponse(response) {
         'correct',
         'error_recover',
         'respond',
+        'click_element',     // NEW
+        'navigate_feature',  // NEW
+        'play_game',         // NEW
+        'open_module',       // NEW
     ];
 
     if (response.action && !validActions.includes(response.action)) {
-        errors.push(`Invalid action: ${response.action}`);
+        // Instead of erroring, downgrade to respond so it still works
+        console.warn(`[responseParser] Unknown action "${response.action}", downgrading to "respond"`);
+        response.action = 'respond';
     }
 
     // Validate response length
@@ -75,6 +81,12 @@ function validateLeoResponse(response) {
         }
     }
 
+    // For click_element action, warn if element_id is missing
+    if (response.action === 'click_element' && !response.element_id) {
+        console.warn('[responseParser] click_element action missing element_id');
+        errors.push('click_element action requires element_id');
+    }
+
     return {
         isValid: errors.length === 0,
         errors,
@@ -83,25 +95,35 @@ function validateLeoResponse(response) {
 
 /**
  * Sanitize response text
+ * FIXED: removed aggressive regex that was stripping element IDs and hyphens
  */
 function sanitizeResponse(text) {
     return text
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/[^\w\s?.!,\-']/g, '') // Remove special chars
-        .substring(0, 500) // Cap length
+        .replace(/<[^>]*>/g, '')  // Remove HTML tags only
+        .substring(0, 500)
         .trim();
 }
 
 /**
- * Fix common Claude response issues
+ * Fix common Groq response issues
+ * FIXED: added navigation/click intent inference
  */
 function fixCommonIssues(response) {
-    // If action is missing, infer from response
+    // If action is missing, infer from response text
     if (!response.action) {
-        if (response.response.includes('hint')) {
+        const text = (response.response || '').toLowerCase();
+
+        if (text.includes('hint') || text.includes('think about')) {
             response.action = 'hint';
-        } else if (response.response.includes('break')) {
+        } else if (text.includes('break') || text.includes('well done')) {
             response.action = 'encourage';
+        } else if (
+            text.includes('opening') ||
+            text.includes('taking you to') ||
+            text.includes("let's play") ||
+            text.includes('navigating')
+        ) {
+            response.action = 'click_element';  // NEW
         } else {
             response.action = 'respond';
         }
@@ -115,6 +137,16 @@ function fixCommonIssues(response) {
     // Set confidence if missing
     if (!response.confidence_in_response) {
         response.confidence_in_response = 0.7;
+    }
+
+    // Ensure ui_changes exists
+    if (!response.ui_changes) {
+        response.ui_changes = {};
+    }
+
+    // Ensure next_action exists
+    if (!response.next_action) {
+        response.next_action = 'await_input';
     }
 
     return response;

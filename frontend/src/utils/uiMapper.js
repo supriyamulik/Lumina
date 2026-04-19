@@ -20,11 +20,22 @@ export const getInteractiveElements = () => {
 
         if (!isVisible) return;
 
-        // Get descriptive text
-        let text = el.innerText || el.ariaLabel || el.placeholder || el.title || '';
-        text = text.trim();
+        // Get descriptive text "as written"
+        // Priority: aria-label (for icons), direct innerText, placeholder
+        let text = el.ariaLabel || el.innerText || el.placeholder || el.title || '';
+        
+        // Clean up text (remove extra spaces, icons/emojis if possible)
+        text = text.trim().replace(/\s+/g, ' ');
 
-        // If no text, try to find text in children or parent
+        // If no text, try to find text in children (especially for complex buttons)
+        if (!text && el.children.length > 0) {
+            text = Array.from(el.querySelectorAll('span, p, div'))
+                .map(c => c.innerText)
+                .join(' ')
+                .trim();
+        }
+
+        // Final fallback for inputs
         if (!text && el.tagName === 'INPUT') {
             const label = document.querySelector(`label[for="${el.id}"]`);
             if (label) text = label.innerText;
