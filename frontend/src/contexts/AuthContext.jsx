@@ -26,7 +26,7 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null); // Firebase User (Teacher/Parent)
-  
+
   // ✅ Step 3 Fix: Restore session on refresh (Sync check!)
   const [studentUser, setStudentUser] = useState(() => {
     const stored = localStorage.getItem('studentUser');
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
     try {
       // ✅ Completely purge any lingering student session so it doesn't force redirects
       logoutChild();
-      
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       await setDoc(
         doc(db, 'users', userCredential.user.uid),
@@ -97,6 +97,8 @@ export const AuthProvider = ({ children }) => {
     try {
       await signOut(auth);
       clearAdminSession();
+      // Also clear any student session that might be lingering
+      logoutChild();
       setCurrentUser(null);
       setUserProfile(null);
     } catch (error) {
@@ -113,17 +115,17 @@ export const AuthProvider = ({ children }) => {
       if (profile) {
         // Fix typo in saved profile data if necessary
         if (profile.preferences?.audioEnables) {
-           profile.preferences.audioEnabled = profile.preferences.audioEnables;
-           delete profile.preferences.audioEnables;
+          profile.preferences.audioEnabled = profile.preferences.audioEnables;
+          delete profile.preferences.audioEnables;
         }
 
         const studentId = profile.studentId;
         saveChildSession(studentId, pin);
-        
+
         // ✅ SET STUDENT SESSION
         setStudentUser(profile);
         localStorage.setItem('studentUser', JSON.stringify(profile));
-        
+
         setUserProfile(profile);
         return profile;
       }

@@ -70,7 +70,7 @@ export default function WordSearch() {
   };
 
   const GameComponent = () => (
-    <div style={{ padding: '20px', width: '100%', maxWidth: '800px', maxHeight: '100%', overflowY: 'auto', textAlign: 'center', fontFamily: isDyslexic ? 'OpenDyslexic, sans-serif' : 'Nunito, sans-serif' }}>
+    <div style={{ padding: '20px', width: '100%', minHeight: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontFamily: isDyslexic ? 'OpenDyslexic, sans-serif' : 'Nunito, sans-serif' }}>
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
         {words.map(w => (
           <span key={w} style={{
@@ -82,7 +82,7 @@ export default function WordSearch() {
         ))}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '4px', border: '4px solid #E8920C', padding: '10px', borderRadius: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '4px', border: '4px solid #E8920C', padding: '10px', borderRadius: '12px', maxWidth: '600px', width: '100%', margin: '0 auto' }}>
         {grid.map((row, r) => row.map((char, c) => {
           const isSelected = selection.some(s => s.r === r && s.c === c);
           return (
@@ -108,7 +108,7 @@ export default function WordSearch() {
         }))}
       </div>
       <button onClick={() => setSelection([])} style={{ marginTop: '20px', padding: '8px 16px', borderRadius: '8px', border: 'none', backgroundColor: '#CBD5E1', cursor: 'pointer' }}>{t('games.word_search_clear')}</button>
-    </div>
+    </div >
   );
 
   return (

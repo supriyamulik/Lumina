@@ -30,12 +30,13 @@ export default function PhoneticPop() {
       const config = {
         type: Phaser.AUTO,
         parent: containerRef.current,
-        width: 800,
-        height: 500,
+        width: window.innerWidth * 0.95,
+        height: window.innerHeight * 0.85,
         transparent: true,
         scale: {
-          mode: Phaser.Scale.FIT,
-          autoCenter: Phaser.Scale.CENTER_BOTH
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+          expandParent: true
         },
         physics: {
           default: 'arcade',
@@ -144,7 +145,7 @@ export default function PhoneticPop() {
       };
     }, []);
 
-    return <div ref={containerRef} style={{ width: '100%', maxWidth: '800px', margin: '0 auto', borderRadius: '24px', overflow: 'hidden' }} />;
+    return <div ref={containerRef} style={{ width: '100%', height: 'calc(100vh - 180px)', margin: '0 auto', borderRadius: '24px', overflow: 'hidden' }} />;
   };
 
   return (

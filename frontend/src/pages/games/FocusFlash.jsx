@@ -35,12 +35,13 @@ export default function FocusFlash() {
       const config = {
         type: Phaser.AUTO,
         parent: containerRef.current,
-        width: 800,
-        height: 500,
+        width: Math.min(window.innerWidth * 0.9, 1000),
+        height: Math.min(window.innerHeight * 0.75, 800),
         transparent: true,
         scale: {
-          mode: Phaser.Scale.FIT,
-          autoCenter: Phaser.Scale.CENTER_BOTH
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+          expandParent: true
         },
         physics: {
           default: 'arcade',

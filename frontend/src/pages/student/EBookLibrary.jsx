@@ -130,25 +130,6 @@ export default function EBookLibrary() {
       </div>
 
       <div style={{ display: 'flex', gap: '16px', marginBottom: '40px', position: 'relative', zIndex: 2, flexWrap: 'wrap' }}>
-        {['All', '3-10', '11-15'].map(age => (
-          <button
-            key={age}
-            onClick={() => setActiveAge(age)}
-            style={{
-              padding: '10px 24px',
-              borderRadius: '99px',
-              border: '2px solid ' + (activeAge === age ? '#4A90D9' : 'rgba(74, 144, 217, 0.2)'),
-              backgroundColor: activeAge === age ? '#4A90D9' : '#FFFFFF',
-              color: activeAge === age ? '#FFFFFF' : '#1A2635',
-              fontWeight: 800,
-              cursor: 'pointer',
-              transition: 'all 0.3s'
-            }}
-          >
-            {age === 'All' ? 'Everywhere' : `Age ${age}`}
-          </button>
-        ))}
-        <div style={{ width: '2px', backgroundColor: 'rgba(255,255,255,0.1)', margin: '0 8px' }} />
         {['All', 'EN', 'HI', 'MR'].map(lang => (
           <button
             key={lang}

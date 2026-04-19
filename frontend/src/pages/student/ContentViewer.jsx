@@ -58,20 +58,28 @@ export default function ContentViewer() {
   const adaptiveConfig = location.state?.adaptiveConfig || { content: {}, ui: {}, interaction: {} };
   const { content: cConf = {}, ui: uiConf = {}, interaction: iConf = {} } = adaptiveConfig;
 
-  const [lessons, setLessons]         = useState([]);
-  const [loading, setLoading]         = useState(true);
-  const [selected, setSelected]       = useState(null);
-  const [activeWord, setActiveWord]   = useState(-1);
-  const [isPlaying, setIsPlaying]     = useState(false);
-  const [fontSize, setFontSize]       = useState(20);
+  const [lessons, setLessons] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(null);
+  const [activeWord, setActiveWord] = useState(-1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [fontSize, setFontSize] = useState(20);
   const [highContrast, setHighContrast] = useState(uiConf.highContrast || false);
   const [sessionStartTime, setSessionStartTime] = useState(0);
-  const [usedAudio, setUsedAudio]     = useState(false);
-  
+  const [usedAudio, setUsedAudio] = useState(false);
+
   // For ADHD chunking
-  const [chunkIndex, setChunkIndex]   = useState(0);
-  
+  const [chunkIndex, setChunkIndex] = useState(0);
+
   const utterRef = useRef(null);
+
+  const goBackFromList = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+    navigate('/dashboard');
+  };
 
   useEffect(() => {
     // Sync font size
@@ -107,17 +115,17 @@ export default function ContentViewer() {
     setUsedAudio(true);
 
     const utter = new SpeechSynthesisUtterance(textToPlay);
-    utter.rate  = 0.85;
+    utter.rate = 0.85;
     utter.pitch = 1;
-    utter.lang  = 'en-IN';
+    utter.lang = 'en-IN';
 
     const words = textToPlay.split(/\s+/);
     let wordIdx = 0;
     utter.onboundary = (e) => {
       if (e.name === 'word') setActiveWord(wordIdx++);
     };
-    utter.onend  = () => { setIsPlaying(false); setActiveWord(-1); };
-    utter.onerror= () => { setIsPlaying(false); setActiveWord(-1); };
+    utter.onend = () => { setIsPlaying(false); setActiveWord(-1); };
+    utter.onerror = () => { setIsPlaying(false); setActiveWord(-1); };
 
     utterRef.current = utter;
     window.speechSynthesis.speak(utter);
@@ -159,6 +167,9 @@ export default function ContentViewer() {
         `}</style>
 
         <header style={v.header}>
+          <button onClick={goBackFromList} style={v.listBackBtn}>
+            ← Back
+          </button>
           <h1 style={{ ...v.heading, ...(highContrast ? v.textHC : {}) }}>Your Lessons 📚</h1>
           <p style={v.sub}>Your teacher has prepared these specially for you.</p>
         </header>
@@ -182,7 +193,7 @@ export default function ContentViewer() {
   }
 
   // ── SINGLE LESSON READER ──
-  const bg   = highContrast ? '#000' : '#FFFDF5';
+  const bg = highContrast ? '#000' : '#FFFDF5';
   const text = highContrast ? '#FFF' : '#0A1628';
 
   return (
@@ -223,7 +234,7 @@ export default function ContentViewer() {
         <div style={{ ...v.body, lineHeight: profile?.preferences?.lineSpacing || 1.9 }}>
           {(() => {
             const paragraphs = selected.simplifiedText?.split('\n').filter(p => p.trim()) || [];
-            
+
             // Chunking logic for ADHD
             if (cConf.chunkSize === 'small' && paragraphs.length > 0) {
               const currentPara = paragraphs[chunkIndex];
@@ -237,19 +248,19 @@ export default function ContentViewer() {
                     />
                   </p>
                   <div style={v.chunkNav}>
-                    <button 
-                      disabled={chunkIndex === 0} 
+                    <button
+                      disabled={chunkIndex === 0}
                       onClick={() => { setChunkIndex(i => i - 1); stopAudio(); }}
                       style={{ ...v.ctrl, opacity: chunkIndex === 0 ? 0.3 : 1 }}
                     >
                       ← Previous
                     </button>
                     <span style={{ fontSize: 16 }}>Part {chunkIndex + 1} of {paragraphs.length}</span>
-                    <button 
-                      onClick={() => { 
+                    <button
+                      onClick={() => {
                         if (chunkIndex < paragraphs.length - 1) {
-                          setChunkIndex(i => i + 1); 
-                          stopAudio(); 
+                          setChunkIndex(i => i + 1);
+                          stopAudio();
                         } else {
                           handleCloseLesson();
                         }
@@ -266,19 +277,19 @@ export default function ContentViewer() {
             // Normal rendering
             return paragraphs.map((para, pi) => (
               <p key={pi} style={v.para}>
-                  <WordHighlighter
-                    text={para}
-                    activeIndex={activeWord}
-                    highlightEnabled={cConf.highlightWords}
-                  />
+                <WordHighlighter
+                  text={para}
+                  activeIndex={activeWord}
+                  highlightEnabled={cConf.highlightWords}
+                />
               </p>
             ));
           })()}
         </div>
       </article>
-      
+
       {iConf.allowDistractions === false && (
-         <div style={v.focusFrameOverlay} />
+        <div style={v.focusFrameOverlay} />
       )}
     </div>
   );
@@ -335,6 +346,17 @@ const v = {
   },
   pageHC: { background: '#000', color: '#fff' },
   header: { marginBottom: 40 },
+  listBackBtn: {
+    background: '#FFFFFF',
+    color: '#0A1628',
+    border: '1px solid #E8ECF0',
+    borderRadius: 12,
+    padding: '10px 14px',
+    fontWeight: 800,
+    cursor: 'pointer',
+    marginBottom: 16,
+    fontFamily: 'Nunito, sans-serif'
+  },
   heading: {
     fontFamily: 'Fraunces, serif',
     fontSize: '2.4rem', color: '#0A1628', margin: 0
@@ -396,12 +418,12 @@ const v = {
     fontSize: '2.2rem',
     marginBottom: 40
   },
-  body: { },
+  body: {},
   para: {
     marginBottom: '1.4em',
     letterSpacing: '0.02em'
   },
-  chunkContainer: { 
+  chunkContainer: {
     display: 'flex', flexDirection: 'column', gap: 32,
     background: 'rgba(255,255,255,0.05)', padding: 40, borderRadius: 24, boxShadow: '0 10px 30px rgba(0,0,0,0.05)'
   },

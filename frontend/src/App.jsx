@@ -12,6 +12,8 @@ import GlobalAssistant from './components/GlobalAssistant';
 import Login from './pages/Login';
 import Register from './pages/auth/Register';
 import StudentDashboard from './pages/StudentDashboard';
+import ADHDDashboardDemo from './pages/DashboardPrototype';
+import SignLanguageDashboard from './pages/SignLanguageDashboard';
 import TestServices from './pages/TestServices';
 import TestBackend from './pages/TestBackend';
 import { Landing } from './pages/Landing';
@@ -32,12 +34,22 @@ import WordSearch from './pages/games/WordSearch';
 import EmojiEmotion from './pages/games/EmojiEmotion';
 import EBookLibrary from './pages/student/EBookLibrary';
 import EBookReader from './pages/student/EBookReader';
+import LowVisionDashboard from './pages/LowVisionDashboard';
+import LowVisionGames from './pages/games/LowVisionGames';
 import LabPage from './pages/labs/LabPage';
 import DiyaGuru from './components/DiyaGuru';
 
 function GlobalDiya() {
-  const { studentUser } = useAuth();
-  return studentUser ? <DiyaGuru /> : null;
+  const { studentUser, currentUser } = useAuth();
+  // Only show DiyaGuru for active student sessions when no teacher is logged in
+  return studentUser && !currentUser ? <DiyaGuru /> : null;
+}
+
+function ConditionalGlobalAssistant() {
+  const { studentUser, currentUser } = useAuth();
+  // Only show GlobalAssistant for active student sessions when no teacher is logged in
+  // This ensures it won't appear on teacher dashboard
+  return studentUser && !currentUser ? <GlobalAssistant /> : null;
 }
 
 const theme = createTheme({
@@ -140,6 +152,12 @@ function App() {
                       }
                     />
                     <Route path="/test-backend" element={<TestBackend />} />
+                    <Route path="/adhd-demo" element={<ADHDDashboardDemo />} />
+                    <Route path="/low-vision" element={
+                      <DashboardRoute>
+                        <LowVisionDashboard />
+                      </DashboardRoute>
+                    } />
                     <Route path="/" element={<Landing />} />
                     <Route path="/lessons" element={
                       <DashboardRoute><ContentViewer /></DashboardRoute>
@@ -168,6 +186,9 @@ function App() {
                     <Route path="/games" element={
                       <DashboardRoute><GamesScreen /></DashboardRoute>
                     } />
+                    <Route path="/low-vision-games" element={
+                      <DashboardRoute><LowVisionGames /></DashboardRoute>
+                    } />
                     <Route path="/game/math-race" element={
                       <DashboardRoute><MathRace /></DashboardRoute>
                     } />
@@ -191,7 +212,7 @@ function App() {
                     } />
                     <Route path="*" element={<Navigate to="/" />} />
                   </Routes>
-                  <GlobalAssistant />
+                  <ConditionalGlobalAssistant />
                   <GlobalDiya />
                 </Router>
               </LearningAssistantProvider>

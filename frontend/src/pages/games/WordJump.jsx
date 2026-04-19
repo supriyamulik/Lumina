@@ -228,8 +228,8 @@ export default function WordJump() {
 
     const config = {
       type: Phaser.AUTO,
-      width: '100%',
-      height: 600,
+      width: containerRef.current?.offsetWidth || window.innerWidth * 0.95,
+      height: containerRef.current?.offsetHeight || window.innerHeight * 0.6,
       parent: containerRef.current,
       physics: {
         default: 'arcade',
@@ -238,8 +238,9 @@ export default function WordJump() {
       scene: MainScene,
       transparent: true,
       scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        expandParent: true
       }
     };
 
@@ -342,11 +343,8 @@ export default function WordJump() {
       <div
         ref={containerRef}
         style={{
-          width: '95%',
-          maxWidth: 900,
-          height: 'auto',
-          aspectRatio: '16/9',
-          maxHeight: '60vh',
+          width: '100%',
+          height: 'calc(100vh - 260px)',
           margin: '0 auto',
           borderRadius: 24,
           overflow: 'hidden',

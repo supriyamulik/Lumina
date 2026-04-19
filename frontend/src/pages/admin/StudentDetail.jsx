@@ -15,6 +15,7 @@ export default function StudentDetail() {
   const [insights, setInsights] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('stats'); // 'stats', 'content', 'settings'
+  const [savingSettings, setSavingSettings] = useState(false);
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -23,7 +24,7 @@ export default function StudentDetail() {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           setStudent({ id: docSnap.id, ...docSnap.data() });
-          
+
           // Fetch behavioral insights
           const studentInsights = await getStudentInsights(docSnap.id);
           setInsights(studentInsights);
@@ -58,6 +59,22 @@ export default function StudentDetail() {
     img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
   };
 
+  const handleToggleSignLanguage = async () => {
+    try {
+      setSavingSettings(true);
+      const newValue = !student.needsSignLanguage;
+      await updateDoc(doc(db, 'studentProfiles', id), {
+        needsSignLanguage: newValue
+      });
+      setStudent({ ...student, needsSignLanguage: newValue });
+    } catch (error) {
+      console.error('Error updating sign language setting:', error);
+      alert('Failed to update setting. Please try again.');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
   const getAttentionIndicator = (score) => {
     if (score === 'high') return '🟢 Good';
     if (score === 'medium') return '🟡 Medium';
@@ -90,7 +107,7 @@ export default function StudentDetail() {
             </div>
             <h1 style={styles.name}>{student.name}</h1>
             <p style={styles.ageLabel}>{student.ageGroup} Years • {student.language}</p>
-            
+
             <div style={styles.badgeRow}>
               {student.disabilities?.map(d => (
                 <span key={d} style={styles.disabilityBadge}>{d}</span>
@@ -100,21 +117,21 @@ export default function StudentDetail() {
             <div style={styles.divider} />
 
             <div style={styles.accessSection}>
-               <h3 style={styles.sectionHeading}>Student Access</h3>
-               <div style={styles.qrContainer}>
-                 <QRCodeSVG 
-                    id="student-qr"
-                    value={generateQRData(student.id, student.pin)} 
-                    size={160}
-                    level="H"
-                    includeMargin={true}
-                 />
-               </div>
-               <div style={styles.pinDisplay}>
-                  <span style={styles.pinLabel}>SECRET PIN</span>
-                  <span style={styles.pinValue}>{student.pin}</span>
-               </div>
-               <button onClick={downloadQR} style={styles.downloadBtn}>⬇️ Download QR Card</button>
+              <h3 style={styles.sectionHeading}>Student Access</h3>
+              <div style={styles.qrContainer}>
+                <QRCodeSVG
+                  id="student-qr"
+                  value={generateQRData(student.id, student.pin)}
+                  size={160}
+                  level="H"
+                  includeMargin={true}
+                />
+              </div>
+              <div style={styles.pinDisplay}>
+                <span style={styles.pinLabel}>SECRET PIN</span>
+                <span style={styles.pinValue}>{student.pin}</span>
+              </div>
+              <button onClick={downloadQR} style={styles.downloadBtn}>⬇️ Download QR Card</button>
             </div>
           </div>
         </aside>
@@ -122,7 +139,7 @@ export default function StudentDetail() {
         <main style={styles.rightCol}>
           <div style={styles.tabs}>
             {['stats', 'content', 'settings'].map(tab => (
-              <button 
+              <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 style={{ ...styles.tab, ...(activeTab === tab ? styles.tabActive : {}) }}
@@ -139,22 +156,22 @@ export default function StudentDetail() {
                   <h3 style={styles.sectionHeading}>📊 Learning Insights</h3>
                   <div style={styles.statsGrid}>
                     <div style={styles.statCard}>
-                       <h3 style={styles.statTitle}>Avg Session</h3>
-                       <p style={styles.statVal}>{insights ? `${Math.round(insights.avgSessionTime / 60)} min` : '...'}</p>
+                      <h3 style={styles.statTitle}>Avg Session</h3>
+                      <p style={styles.statVal}>{insights ? `${Math.round(insights.avgSessionTime / 60)} min` : '...'}</p>
                     </div>
                     <div style={styles.statCard}>
-                       <h3 style={styles.statTitle}>Attention</h3>
-                       <p style={styles.statVal} className="insight-indicator">
-                         {insights ? getAttentionIndicator(insights.attentionScore) : '...'}
-                       </p>
+                      <h3 style={styles.statTitle}>Attention</h3>
+                      <p style={styles.statVal} className="insight-indicator">
+                        {insights ? getAttentionIndicator(insights.attentionScore) : '...'}
+                      </p>
                     </div>
                     <div style={styles.statCard}>
-                       <h3 style={styles.statTitle}>Preferred Mode</h3>
-                       <p style={styles.statVal}>{insights ? (insights.preferredMode === 'audio' ? '🎧 Audio' : '📖 Text') : '...'}</p>
+                      <h3 style={styles.statTitle}>Preferred Mode</h3>
+                      <p style={styles.statVal}>{insights ? (insights.preferredMode === 'audio' ? '🎧 Audio' : '📖 Text') : '...'}</p>
                     </div>
                     <div style={styles.statCard}>
-                       <h3 style={styles.statTitle}>Audio Usage</h3>
-                       <p style={styles.statVal}>{insights ? `${insights.audioUsageRate}%` : '...'}</p>
+                      <h3 style={styles.statTitle}>Audio Usage</h3>
+                      <p style={styles.statVal}>{insights ? `${insights.audioUsageRate}%` : '...'}</p>
                     </div>
                   </div>
                 </div>
@@ -162,19 +179,19 @@ export default function StudentDetail() {
                 <h3 style={styles.sectionHeading}>Overview</h3>
                 <div style={styles.statsGrid}>
                   <div style={styles.statCard}>
-                     <h3 style={styles.statTitle}>Time Spent</h3>
-                     <p style={styles.statVal}>12.4 Hours</p>
-                     <span style={styles.trend}>+12% from last week</span>
+                    <h3 style={styles.statTitle}>Time Spent</h3>
+                    <p style={styles.statVal}>12.4 Hours</p>
+                    <span style={styles.trend}>+12% from last week</span>
                   </div>
                   <div style={styles.statCard}>
-                     <h3 style={styles.statTitle}>Accuracy</h3>
-                     <p style={styles.statVal}>87%</p>
-                     <span style={styles.trendGreen}>Improving!</span>
+                    <h3 style={styles.statTitle}>Accuracy</h3>
+                    <p style={styles.statVal}>87%</p>
+                    <span style={styles.trendGreen}>Improving!</span>
                   </div>
                   <div style={styles.statCard}>
-                     <h3 style={styles.statTitle}>Lessons</h3>
-                     <p style={styles.statVal}>24 / 40</p>
-                     <div style={styles.miniProgress}><div style={{...styles.miniFill, width: '60%'}} /></div>
+                    <h3 style={styles.statTitle}>Lessons</h3>
+                    <p style={styles.statVal}>24 / 40</p>
+                    <div style={styles.miniProgress}><div style={{ ...styles.miniFill, width: '60%' }} /></div>
                   </div>
                 </div>
               </>
@@ -182,12 +199,12 @@ export default function StudentDetail() {
 
             {activeTab === 'content' && (
               <div style={styles.contentList}>
-                 <h3 style={styles.sectionHeading}>Assigned Materials</h3>
-                 <div style={styles.emptyMaterial}>
-                   <span>📚</span>
-                   <p>No custom materials uploaded yet.</p>
-                   <button style={styles.uploadBtn}>Upload Textbook Photo</button>
-                 </div>
+                <h3 style={styles.sectionHeading}>Assigned Materials</h3>
+                <div style={styles.emptyMaterial}>
+                  <span>📚</span>
+                  <p>No custom materials uploaded yet.</p>
+                  <button style={styles.uploadBtn}>Upload Textbook Photo</button>
+                </div>
               </div>
             )}
 
@@ -195,24 +212,45 @@ export default function StudentDetail() {
               <div style={styles.settingsView}>
                 <h3 style={styles.sectionHeading}>Accessibility Preferences (Auto-Configured)</h3>
                 <div style={styles.prefGrid}>
-                   <div style={styles.prefItem}>
-                      <span style={styles.prefLabel}>Font Family</span>
-                      <span style={styles.prefVal}>{student.preferences?.fontFamily || 'Nunito'}</span>
-                   </div>
-                   <div style={styles.prefItem}>
-                      <span style={styles.prefLabel}>Audio Narration</span>
-                      <span style={styles.prefVal}>{student.preferences?.audioEnables ? 'Enabled' : 'Disabled'}</span>
-                   </div>
-                   <div style={styles.prefItem}>
-                      <span style={styles.prefLabel}>Focus Mode</span>
-                      <span style={styles.prefVal}>{student.preferences?.focusMode ? 'Active (ADHD Mode)' : 'Standard'}</span>
-                   </div>
-                   <div style={styles.prefItem}>
-                      <span style={styles.prefLabel}>High Contrast</span>
-                      <span style={styles.prefVal}>{student.preferences?.highContrast ? 'Enabled' : 'Off'}</span>
-                   </div>
+                  <div style={styles.prefItem}>
+                    <span style={styles.prefLabel}>Font Family</span>
+                    <span style={styles.prefVal}>{student.preferences?.fontFamily || 'Nunito'}</span>
+                  </div>
+                  <div style={styles.prefItem}>
+                    <span style={styles.prefLabel}>Audio Narration</span>
+                    <span style={styles.prefVal}>{student.preferences?.audioEnables ? 'Enabled' : 'Disabled'}</span>
+                  </div>
+                  <div style={styles.prefItem}>
+                    <span style={styles.prefLabel}>Focus Mode</span>
+                    <span style={styles.prefVal}>{student.preferences?.focusMode ? 'Active (ADHD Mode)' : 'Standard'}</span>
+                  </div>
+                  <div style={styles.prefItem}>
+                    <span style={styles.prefLabel}>High Contrast</span>
+                    <span style={styles.prefVal}>{student.preferences?.highContrast ? 'Enabled' : 'Off'}</span>
+                  </div>
                 </div>
-                <button style={styles.editSettingsBtn}>Edit Manually</button>
+
+                <h3 style={{ ...styles.sectionHeading, marginTop: '30px' }}>📚 Learning Programs</h3>
+                <div style={styles.settingsToggleRow}>
+                  <div>
+                    <div style={styles.toggleLabel}>🤟 Sign Language Training</div>
+                    <div style={styles.toggleDesc}>Enable sign language learning dashboard and practice games</div>
+                  </div>
+                  <button
+                    onClick={handleToggleSignLanguage}
+                    disabled={savingSettings}
+                    style={{
+                      ...styles.toggleButton,
+                      backgroundColor: student.needsSignLanguage ? '#8B5CF6' : '#CBD5E1',
+                      opacity: savingSettings ? 0.6 : 1,
+                      cursor: savingSettings ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    {savingSettings ? '...' : student.needsSignLanguage ? 'ON' : 'OFF'}
+                  </button>
+                </div>
+
+                <button style={styles.editSettingsBtn} disabled={savingSettings}>Edit Manually</button>
               </div>
             )}
           </div>
@@ -382,16 +420,16 @@ const styles = {
     gap: 20,
   },
   statCard: {
-     background: '#fff',
-     padding: 24,
-     borderRadius: 24,
-     boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
+    background: '#fff',
+    padding: 24,
+    borderRadius: 24,
+    boxShadow: '0 4px 12px rgba(0,0,0,0.02)',
   },
   statTitle: {
-     fontSize: 14, color: '#A0AEC0', fontWeight: 800, textTransform: 'uppercase', marginBottom: 8, marginTop: 0
+    fontSize: 14, color: '#A0AEC0', fontWeight: 800, textTransform: 'uppercase', marginBottom: 8, marginTop: 0
   },
   statVal: {
-     fontSize: 24, color: '#0A1628', fontWeight: 900, margin: 0
+    fontSize: 24, color: '#0A1628', fontWeight: 900, margin: 0
   },
   trend: {
     fontSize: 12,
@@ -413,9 +451,9 @@ const styles = {
     marginTop: 12,
   },
   miniFill: {
-     height: '100%',
-     background: '#E8920C',
-     borderRadius: 10,
+    height: '100%',
+    background: '#E8920C',
+    borderRadius: 10,
   },
   emptyMaterial: {
     background: '#fff',
@@ -429,26 +467,26 @@ const styles = {
     color: '#A0AEC0',
   },
   uploadBtn: {
-     background: '#0A1628',
-     color: '#fff',
-     border: 'none',
-     padding: '12px 24px',
-     borderRadius: 10,
-     fontWeight: 700,
-     cursor: 'pointer',
-     marginTop: 10,
+    background: '#0A1628',
+    color: '#fff',
+    border: 'none',
+    padding: '12px 24px',
+    borderRadius: 10,
+    fontWeight: 700,
+    cursor: 'pointer',
+    marginTop: 10,
   },
   prefGrid: {
-     display: 'grid',
-     gridTemplateColumns: 'repeat(2, 1fr)',
-     gap: 16,
-     marginBottom: 32,
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: 16,
+    marginBottom: 32,
   },
   prefItem: {
-     background: '#fff',
-     padding: 20,
-     borderRadius: 16,
-     border: '1px solid #E8ECF0',
+    background: '#fff',
+    padding: 20,
+    borderRadius: 16,
+    border: '1px solid #E8ECF0',
   },
   prefLabel: {
     display: 'block',
@@ -471,5 +509,36 @@ const styles = {
     borderRadius: 10,
     fontWeight: 800,
     cursor: 'pointer',
+  },
+  settingsToggleRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '16px',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    border: '1px solid #E2E8F0',
+    marginBottom: '20px',
+  },
+  toggleLabel: {
+    fontWeight: 800,
+    color: '#0A1628',
+    fontSize: '15px',
+    marginBottom: '4px',
+  },
+  toggleDesc: {
+    fontSize: '13px',
+    color: '#5A7088',
+    marginTop: '4px',
+  },
+  toggleButton: {
+    padding: '8px 20px',
+    borderRadius: '8px',
+    border: 'none',
+    color: '#FFFFFF',
+    fontWeight: 800,
+    cursor: 'pointer',
+    fontSize: '13px',
+    transition: 'all 0.3s ease',
   }
 };

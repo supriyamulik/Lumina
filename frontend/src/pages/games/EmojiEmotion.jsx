@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as faceapi from 'face-api.js';
 import { Box, Typography, Button, Paper, CircularProgress } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import ttsService from '../../services/ttsService';
 import { useSoundEffects } from '../../hooks/useSoundEffects';
 
@@ -12,6 +13,7 @@ const EMOTIONS = [
 ];
 
 export default function EmojiEmotion() {
+  const navigate = useNavigate();
   const videoRef = useRef(null);
   const { playSuccess, playCombo } = useSoundEffects();
   const [modelsLoaded, setModelsLoaded] = useState(false);
@@ -122,6 +124,16 @@ export default function EmojiEmotion() {
   return (
     <Box sx={{ minHeight: '100vh', py: 6, backgroundColor: '#f0f4f8' }}>
       <Box maxWidth="lg" mx="auto" px={3}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => navigate(-1)}
+            sx={{ fontWeight: 700, borderRadius: '12px' }}
+          >
+            ← Back
+          </Button>
+        </Box>
+
         <Typography variant="h3" align="center" gutterBottom sx={{ fontWeight: 'bold', color: '#1a3a5c' }}>
           Emotion Mirror 🪞
         </Typography>

@@ -10,6 +10,10 @@ import Companion from '../components/interactive/Companion';
 import reactionService from '../services/reactionService';
 import { useAccessibility } from '../contexts/AccessibilityContext';
 
+// Specialty Dashboards
+import ADHDDashboard from './ADHDDashboard';
+import SignLanguageDashboard from './SignLanguageDashboard';
+
 // 🎨 Dyslexia-Friendly Pure Neutral Palette
 const C = {
   navy: '#0F172A',
@@ -92,45 +96,49 @@ export default function StudentDashboard() {
     minHeight: '100vh',
     backgroundColor: C.slate,
     fontFamily: isDyslexiaMode ? "'OpenDyslexic', sans-serif" : Fonts.body,
+    display: 'flex',
+    flexDirection: 'column'
   };
 
   const topBarStyle = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: '0 40px',
-    height: '80px',
+    padding: '16px 60px',
+    height: 'auto',
     backgroundColor: C.white,
-    borderBottom: `2.5px solid ${C.border}`,
+    borderBottom: `2px solid ${C.border}`,
     position: 'sticky',
     top: 0,
-    zIndex: 100
+    zIndex: 100,
+    boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
   };
 
   const navLinkStyle = (isActive) => ({
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    padding: '10px 24px',
-    borderRadius: '16px',
+    gap: '8px',
+    padding: '12px 20px',
+    borderRadius: '14px',
     color: isActive ? C.blue : C.textSoft,
-    backgroundColor: isActive ? `${C.blue}08` : 'transparent',
-    fontWeight: '900',
-    fontSize: '1rem',
+    backgroundColor: isActive ? `${C.blue}10` : 'transparent',
+    fontWeight: '700',
+    fontSize: '0.95rem',
     cursor: 'pointer',
-    transition: 'all 0.2s',
-    border: 'none',
-    fontFamily: 'inherit'
+    transition: 'all 0.2s ease',
+    border: `2px solid ${isActive ? C.blue : 'transparent'}`,
+    fontFamily: 'inherit',
+    whiteSpace: 'nowrap'
   });
 
   const guidedButtonStyle = (isPrimary, isHovered) => ({
-    width: isPrimary ? '100%' : '100%',
-    padding: isPrimary ? '60px 40px' : '40px 30px',
+    width: '100%',
+    padding: isPrimary ? '48px 40px' : '48px 40px',
     backgroundColor: isPrimary ? C.blue : C.white,
     color: isPrimary ? C.white : C.text,
-    border: isPrimary ? 'none' : `3px solid ${C.border}`,
-    borderRadius: '32px',
-    fontSize: isPrimary ? '2rem' : '1.5rem',
+    border: isPrimary ? 'none' : `2px solid ${C.border}`,
+    borderRadius: '24px',
+    fontSize: isPrimary ? '1.8rem' : '1.4rem',
     fontWeight: '900',
     cursor: 'pointer',
     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -138,288 +146,437 @@ export default function StudentDashboard() {
     alignItems: 'center',
     justifyContent: 'center',
     gap: '24px',
-    boxShadow: isHovered ? '0 20px 25px -5px rgba(0, 0, 0, 0.1)' : '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-    transform: isHovered ? 'scale(1.02)' : 'scale(1)',
+    boxShadow: isHovered ? '0 16px 32px -4px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(0, 0, 0, 0.08)',
+    transform: isHovered ? 'translateY(-2px)' : 'translateY(0)',
     textAlign: 'center'
   });
 
   const floatingControlStyle = {
     position: 'fixed',
     bottom: '40px',
-    right: '40px',
+    left: '40px',
     display: 'flex',
     flexDirection: 'column',
-    gap: '12px',
-    zIndex: 1000
+    gap: '14px',
+    zIndex: 999
   };
 
   const controlButtonStyle = {
     backgroundColor: C.white,
-    border: `2.5px solid ${C.border}`,
-    padding: '14px 24px',
-    borderRadius: '20px',
+    border: `2px solid ${C.border}`,
+    padding: '12px 20px',
+    borderRadius: '16px',
     display: 'flex',
     alignItems: 'center',
-    gap: '12px',
-    fontWeight: '900',
+    gap: '10px',
+    fontWeight: '700',
     color: C.text,
     cursor: 'pointer',
-    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-    transition: 'all 0.2s',
-    fontSize: '0.9rem',
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.2s ease',
+    fontSize: '0.85rem',
     fontFamily: 'inherit'
   };
 
   return (
-    <div style={mainAreaStyle}>
-      {/* 🚥 TOP NAVIGATION */}
-      <header style={topBarStyle}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', cursor: 'pointer' }} onClick={() => setCurrentView('home')}>
-          <LuminaLogo size={32} color={C.blue} />
-          <h1 style={{ fontFamily: Fonts.heading, fontSize: '1.8rem', fontWeight: 'bold', color: C.navy, margin: 0 }}>Lumina</h1>
-        </div>
+    <>
+      {/* 🎓 ADHD DASHBOARD - Auto-rendered for ADHD students */}
+      {profile?.condition === 'ADHD' ? (
+        <ADHDDashboard />
+      ) : profile?.needsSignLanguage ? (
+        <SignLanguageDashboard />
+      ) : (
+        <div style={mainAreaStyle}>
+          {/* 🚥 TOP NAVIGATION */}
+          <header style={topBarStyle}>
 
-        <nav style={{ display: 'flex', gap: '10px' }}>
-          {navItems.map(item => {
-            const isActive = currentView === item.id;
-            return (
-              <button
-                key={item.id}
-                style={navLinkStyle(isActive)}
-                onClick={() => item.action ? item.action() : navigate(item.path)}
-              >
-                <item.icon />
-                {item.label}
-              </button>
-            )
-          })}
-        </nav>
+            <nav style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center', flex: 1, margin: '0 30px' }}>
+              {navItems.map(item => {
+                const isActive = currentView === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    style={navLinkStyle(isActive)}
+                    onClick={() => item.action ? item.action() : navigate(item.path)}
+                  >
+                    <item.icon />
+                    {item.label}
+                  </button>
+                )
+              })}
+            </nav>
 
-        <div style={{ padding: '8px 16px', backgroundColor: `${C.amber}15`, borderRadius: '14px', border: `2px solid ${C.amber}44`, color: C.amber, fontWeight: '900', fontSize: '0.9rem' }}>
-          ✨ {profile?.name || 'Explorer'}
-        </div>
-      </header>
-
-      {/* 🖼️ MAIN GUIDED AREA */}
-      <main style={{ flex: 1, padding: '40px', maxWidth: '1000px', margin: '0 auto', width: '100%' }}>
-
-        <DiyaGuru state={companionState} message={companionMsg} />
-
-        {currentView === 'home' ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-            <button
-              style={guidedButtonStyle(true, hoveredAction === 'continue')}
-              onMouseEnter={() => setHoveredAction('continue')}
-              onMouseLeave={() => setHoveredAction(null)}
-              onClick={() => navigate('/subjects')}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-                <span style={{ fontSize: '3.5rem' }}>🗺️</span>
-                <span style={{ flex: 1 }}>{t('dashboard.continue_learning')}</span>
-              </div>
-            </button>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-              <button
-                style={guidedButtonStyle(false, hoveredAction === 'practice')}
-                onMouseEnter={() => setHoveredAction('practice')}
-                onMouseLeave={() => setHoveredAction(null)}
-                onClick={() => setCurrentView('labs')}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '2.5rem' }}>🧪</span>
-                  <span>{t('dashboard.practice')}</span>
-                </div>
-              </button>
-
-              <button
-                style={guidedButtonStyle(false, hoveredAction === 'story')}
-                onMouseEnter={() => setHoveredAction('story')}
-                onMouseLeave={() => setHoveredAction(null)}
-                onClick={() => navigate('/library')}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                  <span style={{ fontSize: '2.5rem' }}>📖</span>
-                  <span>{t('dashboard.story')}</span>
-                </div>
-              </button>
+            <div style={{ padding: '10px 18px', backgroundColor: `${C.amber}12`, borderRadius: '12px', border: `2px solid ${C.amber}40`, color: C.text, fontWeight: '800', fontSize: '0.9rem', whiteSpace: 'nowrap' }}>
+              ✨ {profile?.name || 'Explorer'}
             </div>
-          </div>
-        ) : currentView === 'labs' ? (
-          /* 🧪 LABS ONE-BY-ONE GALLERY */
-          <div>
-            <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
-              <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.labs')}</h2>
-            </header>
+          </header>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {labs.map(lab => (
+          {/* 🖼️ MAIN GUIDED AREA */}
+          <main style={{ flex: 1, padding: '50px 60px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+
+            {/* <DiyaGuru state={companionState} message={companionMsg} /> */}
+
+            {currentView === 'home' ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+                {/* 🎯 PRIMARY CTA BUTTON */}
                 <button
-                  key={lab.id}
-                  onClick={() => navigate(lab.path)}
-                  style={{
-                    padding: '32px',
-                    borderRadius: '24px',
-                    backgroundColor: C.white,
-                    border: `3px solid ${lab.color}22`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '32px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.borderColor = lab.color;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'none';
-                    e.currentTarget.style.borderColor = `${lab.color}22`;
-                  }}
+                  style={guidedButtonStyle(true, hoveredAction === 'continue')}
+                  onMouseEnter={() => setHoveredAction('continue')}
+                  onMouseLeave={() => setHoveredAction(null)}
+                  onClick={() => navigate('/subjects')}
                 >
-                  <div style={{ fontSize: '3rem', width: '80px', height: '80px', backgroundColor: `${lab.color}15`, borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {lab.icon}
-                  </div>
-                  <div style={{ textAlign: 'left' }}>
-                    <h3 style={{ fontSize: '1.8rem', fontWeight: 900, margin: 0, color: C.navy }}>{lab.label}</h3>
-                    <p style={{ color: C.textSoft, fontWeight: 700, margin: '4px 0 0 0' }}>Explore and learn in one click!</p>
-                  </div>
-                  <div style={{ marginLeft: 'auto', fontSize: '1.5rem', color: lab.color }}>→</div>
+                  <span>{t('dashboard.continue_learning')}</span>
                 </button>
-              ))}
-            </div>
-          </div>
-        ) : currentView === 'resources' ? (
-          /* 📚 RESOURCES VIEW */
-          <div>
-            <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
-              <h2 style={{ fontSize: '2.5rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>Resources</h2>
-            </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '48px' }}>
-              {/* Video Section */}
-              <section>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  📺 Motivational Videos
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>
-                  {videos.map(v => (
-                    <div key={v.id} style={{ backgroundColor: C.white, padding: '20px', borderRadius: '24px', border: `2.5px solid ${C.border}`, boxShadow: '0 8px 16px -4px rgba(0,0,0,0.05)' }}>
-                      <iframe
-                        width="100%"
-                        height="240"
-                        src={v.videoUrl.replace('youtube.com', 'youtube-nocookie.com')}
-                        title={v.title}
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                        style={{ borderRadius: '16px', marginBottom: '16px' }}
-                      ></iframe>
-                      <p style={{ fontWeight: 900, fontSize: '1.1rem', margin: 0 }}>{v.title}</p>
-                    </div>
-                  ))}
+                {/* 📊 QUICK ACCESS GRID */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '20px' }}>
+                  {/* Lessons Card */}
+                  <button
+                    onClick={() => navigate('/subjects')}
+                    style={{
+                      padding: '48px 32px',
+                      borderRadius: '20px',
+                      backgroundColor: '#3B82F6',
+                      border: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '18px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 8px 16px rgba(59, 130, 246, 0.3)',
+                      color: 'white',
+                      minHeight: '200px',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(59, 130, 246, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(59, 130, 246, 0.3)';
+                    }}
+                  >
+                    <span style={{ fontSize: '3.6rem' }}>📚</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.3rem', textAlign: 'center' }}>{t('dashboard.lessons')}</span>
+                    <span style={{ fontSize: '0.95rem', opacity: 0.9 }}>Start learning</span>
+                  </button>
+
+                  {/* Games Card */}
+                  <button
+                    onClick={() => navigate('/games')}
+                    style={{
+                      padding: '48px 32px',
+                      borderRadius: '20px',
+                      backgroundColor: '#EC4899',
+                      border: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '18px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 8px 16px rgba(236, 72, 153, 0.3)',
+                      color: 'white',
+                      minHeight: '200px',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(236, 72, 153, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(236, 72, 153, 0.3)';
+                    }}
+                  >
+                    <span style={{ fontSize: '3.6rem' }}>🎮</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.3rem', textAlign: 'center' }}>{t('dashboard.games')}</span>
+                    <span style={{ fontSize: '0.95rem', opacity: 0.9 }}>Play & learn</span>
+                  </button>
+
+                  {/* EBooks Card */}
+                  <button
+                    onClick={() => navigate('/library')}
+                    style={{
+                      padding: '48px 32px',
+                      borderRadius: '20px',
+                      backgroundColor: '#10B981',
+                      border: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '18px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 8px 16px rgba(16, 185, 129, 0.3)',
+                      color: 'white',
+                      minHeight: '200px',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(16, 185, 129, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(16, 185, 129, 0.3)';
+                    }}
+                  >
+                    <span style={{ fontSize: '3.6rem' }}>📖</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.3rem', textAlign: 'center' }}>{t('dashboard.ebooks')}</span>
+                    <span style={{ fontSize: '0.95rem', opacity: 0.9 }}>Read stories</span>
+                  </button>
+
+                  {/* Labs Card */}
+                  <button
+                    onClick={() => setCurrentView('labs')}
+                    style={{
+                      padding: '48px 32px',
+                      borderRadius: '20px',
+                      backgroundColor: '#F59E0B',
+                      border: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '18px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 8px 16px rgba(245, 158, 11, 0.3)',
+                      color: 'white',
+                      minHeight: '200px',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(245, 158, 11, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(245, 158, 11, 0.3)';
+                    }}
+                  >
+                    <span style={{ fontSize: '3.6rem' }}>🧪</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.3rem', textAlign: 'center' }}>{t('dashboard.labs')}</span>
+                    <span style={{ fontSize: '0.95rem', opacity: 0.9 }}>Explore labs</span>
+                  </button>
+
+                  {/* Resources Card */}
+                  <button
+                    onClick={() => setCurrentView('resources')}
+                    style={{
+                      padding: '48px 32px',
+                      borderRadius: '20px',
+                      backgroundColor: '#8B5CF6',
+                      border: 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '18px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 8px 16px rgba(139, 92, 246, 0.3)',
+                      color: 'white',
+                      minHeight: '200px',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(139, 92, 246, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'none';
+                      e.currentTarget.style.boxShadow = '0 8px 16px rgba(139, 92, 246, 0.3)';
+                    }}
+                  >
+                    <span style={{ fontSize: '3.6rem' }}>📚</span>
+                    <span style={{ fontWeight: 800, fontSize: '1.3rem', textAlign: 'center' }}>Resources</span>
+                    <span style={{ fontSize: '0.95rem', opacity: 0.9 }}>Videos & PDFs</span>
+                  </button>
                 </div>
-              </section>
+              </div>
+            ) : currentView === 'labs' ? (
+              /* 🧪 LABS ONE-BY-ONE GALLERY */
+              <div>
+                <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '1.1rem', transition: 'all 0.2s' }} onMouseEnter={(e) => e.target.style.color = C.text} onMouseLeave={(e) => e.target.style.color = C.textSoft}>← {t('common.back')}</button>
+                  <h2 style={{ fontSize: '2.2rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.labs')}</h2>
+                </header>
 
-              {/* Assignments Section */}
-              <section>
-                <h3 style={{ fontSize: '1.5rem', fontWeight: 900, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                  📙 Home Assignments
-                </h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '20px' }}>
-                  {assignments.map(a => (
-                    <a
-                      key={a.id}
-                      href={a.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {labs.map(lab => (
+                    <button
+                      key={lab.id}
+                      onClick={() => navigate(lab.path)}
                       style={{
-                        padding: '24px',
+                        padding: '28px 32px',
                         borderRadius: '20px',
                         backgroundColor: C.white,
-                        border: `2.5px solid ${C.border}`,
+                        border: `2px solid ${lab.color}20`,
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '20px',
-                        textDecoration: 'none',
-                        transition: 'all 0.2s',
-                        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)'
+                        gap: '28px',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.borderColor = C.blue;
+                        e.currentTarget.style.transform = 'translateY(-3px)';
+                        e.currentTarget.style.borderColor = lab.color;
+                        e.currentTarget.style.boxShadow = `0 8px 24px ${lab.color}20`;
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.transform = 'none';
-                        e.currentTarget.style.borderColor = C.border;
+                        e.currentTarget.style.borderColor = `${lab.color}20`;
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
                       }}
                     >
-                      <span style={{ fontSize: '2rem' }}>{a.icon}</span>
-                      <div style={{ flex: 1 }}>
-                        <p style={{ fontWeight: 900, fontSize: '1rem', color: C.text, margin: 0 }}>{a.title}</p>
-                        <span style={{ fontSize: '0.8rem', fontWeight: 800, color: C.textSoft }}>View PDF Assignment</span>
+                      <div style={{ fontSize: '2.5rem', width: '70px', height: '70px', backgroundColor: `${lab.color}12`, borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        {lab.icon}
                       </div>
-                      <span style={{ color: C.blue, fontWeight: 900 }}>↓</span>
-                    </a>
+                      <div style={{ textAlign: 'left', flex: 1 }}>
+                        <h3 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: C.navy }}>{lab.label}</h3>
+                        <p style={{ color: C.textSoft, fontWeight: 600, margin: '6px 0 0 0', fontSize: '0.95rem' }}>Explore and learn</p>
+                      </div>
+                      <div style={{ fontSize: '1.4rem', color: lab.color, fontWeight: 800 }}>→</div>
+                    </button>
                   ))}
                 </div>
-              </section>
+              </div>
+            ) : currentView === 'resources' ? (
+              /* 📚 RESOURCES VIEW */
+              <div>
+                <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '1.1rem', transition: 'all 0.2s' }} onMouseEnter={(e) => e.target.style.color = C.text} onMouseLeave={(e) => e.target.style.color = C.textSoft}>← {t('common.back')}</button>
+                  <h2 style={{ fontSize: '2.2rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>Resources</h2>
+                </header>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '48px' }}>
+                  {/* Video Section */}
+                  <section>
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', color: C.navy }}>
+                      📺 Motivational Videos
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))', gap: '24px' }}>
+                      {videos.map(v => (
+                        <div key={v.id} style={{ backgroundColor: C.white, padding: '20px', borderRadius: '20px', border: `2px solid ${C.border}`, boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}>
+                          <iframe
+                            width="100%"
+                            height="220"
+                            src={v.videoUrl.replace('youtube.com', 'youtube-nocookie.com')}
+                            title={v.title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                            style={{ borderRadius: '14px', marginBottom: '16px' }}
+                          ></iframe>
+                          <p style={{ fontWeight: 800, fontSize: '1rem', margin: 0, color: C.text }}>{v.title}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+
+                  {/* Assignments Section */}
+                  <section>
+                    <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px', color: C.navy }}>
+                      📙 Home Assignments
+                    </h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                      {assignments.map(a => (
+                        <a
+                          key={a.id}
+                          href={a.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '24px',
+                            borderRadius: '18px',
+                            backgroundColor: C.white,
+                            border: `2px solid ${C.border}`,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '18px',
+                            textDecoration: 'none',
+                            transition: 'all 0.2s ease',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.06)'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.borderColor = C.blue;
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'none';
+                            e.currentTarget.style.borderColor = C.border;
+                          }}
+                        >
+                          <span style={{ fontSize: '2.2rem' }}>{a.icon}</span>
+                          <div style={{ flex: 1 }}>
+                            <p style={{ fontWeight: 800, fontSize: '1rem', color: C.text, margin: 0 }}>{a.title}</p>
+                            <span style={{ fontSize: '0.8rem', fontWeight: 700, color: C.textSoft }}>Download PDF</span>
+                          </div>
+                          <span style={{ color: C.blue, fontWeight: 800, fontSize: '1.2rem' }}>↓</span>
+                        </a>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+              </div>
+            ) : (
+              /* ⚙️ SETTINGS VIEW */
+              <div style={{ backgroundColor: C.white, borderRadius: '24px', padding: '40px', border: `2px solid ${C.border}`, maxWidth: '500px' }}>
+                <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                  <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '1.1rem', transition: 'all 0.2s' }} onMouseEnter={(e) => e.target.style.color = C.text} onMouseLeave={(e) => e.target.style.color = C.textSoft}>← {t('common.back')}</button>
+                  <h2 style={{ fontSize: '2rem', fontWeight: 800, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.settings')}</h2>
+                </header>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <p style={{ fontWeight: 700, color: C.textSoft, margin: 0 }}>Manage your profile and learning preferences.</p>
+                  <button onClick={logoutChild} style={{ backgroundColor: '#EF4444', color: '#fff', padding: '14px 28px', borderRadius: '12px', border: 'none', fontWeight: 800, cursor: 'pointer', fontSize: '0.95rem', transition: 'all 0.2s ease', width: 'fit-content' }} onMouseEnter={(e) => e.target.style.backgroundColor = '#DC2626'} onMouseLeave={(e) => e.target.style.backgroundColor = '#EF4444'}>
+                    {t('common.logout')}
+                  </button>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* 🔤 FIXED ACCESSIBILITY CONTROLS */}
+          <div style={floatingControlStyle}>
+            {/* Language Selection Pop-up / Button */}
+            <div style={{ position: 'relative' }}>
+              <select
+                onChange={(e) => i18n.changeLanguage(e.target.value)}
+                value={i18n.language}
+                style={controlButtonStyle}
+              >
+                <option value="en">🇺🇸 EN</option>
+                <option value="hi">🇮🇳 HI</option>
+                <option value="mr">🇮🇳 MR</option>
+                <option value="kn">🇮🇳 KN</option>
+              </select>
             </div>
+
+            <button
+              onClick={toggleDyslexiaMode}
+              style={{
+                ...controlButtonStyle,
+                backgroundColor: isDyslexiaMode ? C.blue : C.white,
+                color: isDyslexiaMode ? C.white : C.text,
+                borderColor: isDyslexiaMode ? C.blue : C.border
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 12px 20px rgba(0, 0, 0, 0.12)'}
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = '0 8px 16px rgba(0, 0, 0, 0.1)'}
+            >
+              <Icons.Font />
+              {isDyslexiaMode ? 'DYSLEXIC FONT: ON' : 'DYSLEXIC FONT: OFF'}
+            </button>
           </div>
-        ) : (
-          /* ⚙️ SETTINGS VIEW */
-          <div style={{ backgroundColor: C.white, borderRadius: '32px', padding: '40px', border: `3px solid ${C.border}` }}>
-            <header style={{ marginBottom: '40px', display: 'flex', alignItems: 'center', gap: '20px' }}>
-              <button onClick={() => setCurrentView('home')} style={{ color: C.textSoft, background: 'none', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '1.2rem' }}>← {t('common.back')}</button>
-              <h2 style={{ fontSize: '2rem', fontWeight: 900, fontFamily: Fonts.heading, margin: 0 }}>{t('dashboard.settings')}</h2>
-            </header>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <p style={{ fontWeight: 700, color: C.textSoft }}>Manage your profile and learning preferences here.</p>
-              <button onClick={logoutChild} style={{ backgroundColor: '#EF4444', color: '#fff', padding: '15px 30px', borderRadius: '14px', border: 'none', fontWeight: 900, cursor: 'pointer' }}>
-                {t('common.logout')}
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
 
-      {/* 🔤 FIXED ACCESSIBILITY CONTROLS */}
-      <div style={floatingControlStyle}>
-        {/* Language Selection Pop-up / Button */}
-        <div style={{ position: 'relative' }}>
-          <select
-            onChange={(e) => i18n.changeLanguage(e.target.value)}
-            value={i18n.language}
-            style={controlButtonStyle}
-          >
-            <option value="en">🇺🇸 EN</option>
-            <option value="hi">🇮🇳 HI</option>
-            <option value="mr">🇮🇳 MR</option>
-            <option value="kn">🇮🇳 KN</option>
-          </select>
-        </div>
-
-        <button
-          onClick={toggleDyslexiaMode}
-          style={{
-            ...controlButtonStyle,
-            backgroundColor: isDyslexiaMode ? C.blue : C.white,
-            color: isDyslexiaMode ? C.white : C.text,
-            borderColor: isDyslexiaMode ? C.blue : C.border
-          }}
-        >
-          <Icons.Font />
-          {isDyslexiaMode ? 'DYSLEXIC FONT: ON' : 'DYSLEXIC FONT: OFF'}
-        </button>
-      </div>
-
-      <style>{`
+          <style>{`
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         button:active { transform: scale(0.95); }
       `}</style>
-    </div>
+        </div>
+      )}
+    </>
   );
 }

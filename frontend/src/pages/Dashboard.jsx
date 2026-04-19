@@ -10,19 +10,24 @@ import { LuminaLogo } from '../components/BrandLogo';
 
 
 
-export default function Dashboard() {
+export default function Dashboard({ selectedStudent = null, isEmbedded = false }) {
   const { logout, logoutChild, isAdminSession } = useAuth();
-  const { profile, loading: profileLoading } = useProfile();
+  const contextProfile = useProfile() || {};
+  const profile = selectedStudent || contextProfile?.profile; // Use selectedStudent if provided
+  const profileLoading = !selectedStudent && contextProfile?.loading; // Only check loading if not embedded
   const navigate = useNavigate();
   const [adaptiveConfig, setAdaptiveConfig] = useState(null);
   const [insights, setInsights] = useState(null);
   const [nextAction, setNextAction] = useState(null);
 
+  // When embedded from teacher dashboard, don't show navigation back
+  const showNavigation = !isEmbedded;
+
   const handleSignOut = async () => {
     if (isAdminSession && isAdminSession()) {
-      await logout();          
+      await logout();
     } else {
-      logoutChild();           
+      logoutChild();
     }
     navigate('/login');
   };
@@ -35,7 +40,7 @@ export default function Dashboard() {
         try {
           const studentInsights = await getStudentInsights(profile.studentId);
           setInsights(studentInsights);
-          
+
           const action = getNextAction(profile, studentInsights);
           setNextAction(action);
 
@@ -77,9 +82,9 @@ export default function Dashboard() {
   };
 
   if (profileLoading || !adaptiveConfig) return (
-     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F5F7F6', color: '#1F7A6B' }}>
-       <h2 style={{ fontFamily: 'Nunito, sans-serif' }}>Loading your calm space...</h2>
-     </div>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#F5F7F6', color: '#1F7A6B' }}>
+      <h2 style={{ fontFamily: 'Nunito, sans-serif' }}>Loading your calm space...</h2>
+    </div>
   );
 
   const dis = (profile?.disabilities || []).map(d => d.toLowerCase());
@@ -96,7 +101,7 @@ export default function Dashboard() {
 
   const isHighContrast = adaptiveConfig.ui.highContrast;
   const isDyslexicFont = adaptiveConfig.ui.fontFamily === 'OpenDyslexic';
-  
+
   const sizeMap = { small: '16px', normal: '18px', medium: '18px', large: '22px', xlarge: '28px' };
   const baseFontSize = sizeMap[adaptiveConfig.ui.fontSize] || '18px';
 
@@ -338,34 +343,36 @@ export default function Dashboard() {
       )}
 
       {/* HEADER */}
-      <header style={styles.header}>
-        <div style={styles.headerLeft}>
-          <div style={styles.brandGroup}>
-            <LuminaLogo size={42} color={isHighContrast ? '#FFF' : '#1F7A6B'} />
-            <p style={styles.brandText}>Lumina</p>
-          </div>
-          
-          <div style={{ width: 2, height: 40, backgroundColor: isHighContrast ? '#333' : '#E8ECEB' }} />
+      {showNavigation && (
+        <header style={styles.header}>
+          <div style={styles.headerLeft}>
+            <div style={styles.brandGroup}>
+              <LuminaLogo size={42} color={isHighContrast ? '#FFF' : '#1F7A6B'} />
+              <p style={styles.brandText}>Lumina</p>
+            </div>
 
-          <div style={styles.welcomeBox}>
-            <h1 style={styles.nameText}>Hi, {profile?.name} 👋</h1>
-            <p style={styles.subText}>{headerSubtext}</p>
+            <div style={{ width: 2, height: 40, backgroundColor: isHighContrast ? '#333' : '#E8ECEB' }} />
+
+            <div style={styles.welcomeBox}>
+              <h1 style={styles.nameText}>Hi, {profile?.name} 👋</h1>
+              <p style={styles.subText}>{headerSubtext}</p>
+            </div>
           </div>
-        </div>
-        
-        <div style={styles.toolbar}>
-          <div style={styles.avatar}>
-            {profile?.avatar ? <img src={profile.avatar} alt="Profile" style={{width:'100%', height:'100%', objectFit:'cover'}} /> : <span>{profile?.name?.[0]}</span>}
+
+          <div style={styles.toolbar}>
+            <div style={styles.avatar}>
+              {profile?.avatar ? <img src={profile.avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span>{profile?.name?.[0]}</span>}
+            </div>
+            <button onClick={handleSignOut} style={styles.logoutBtn} className="btn-hover">Sign Out</button>
           </div>
-          <button onClick={handleSignOut} style={styles.logoutBtn} className="btn-hover">Sign Out</button>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* MAIN CONTENT GRID */}
       <main style={styles.mainGrid}>
         {/* CARD 1: Continue Learning */}
-        <div 
-          onClick={handleLessonClick} 
+        <div
+          onClick={handleLessonClick}
           className="hover-scale"
           style={styles.cardHoverContainer}
           role="button"
@@ -384,8 +391,8 @@ export default function Dashboard() {
         </div>
 
         {/* CARD 2: Play Games */}
-        <div 
-          onClick={handleGameClick} 
+        <div
+          onClick={handleGameClick}
           className="hover-scale"
           style={styles.cardHoverContainer}
           role="button"
@@ -417,7 +424,7 @@ export default function Dashboard() {
               <div style={{ ...styles.progressBarFill, width: '80%' }} />
             </div>
           </div>
-          
+
           <div className="hover-lift" style={styles.recentItem}>
             <div style={styles.recentItemContent}>
               <span style={styles.recentItemIcon}>🍎</span>

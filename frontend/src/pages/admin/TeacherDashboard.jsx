@@ -9,6 +9,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import UploadContentModal from './UploadContentModal';
 import { fetchTeacherContent } from '../../services/contentService';
 import { LuminaLogo } from '../../components/BrandLogo';
+import ADHDDashboard from '../ADHDDashboard';
+import DyslexiaDashboard from '../DyslexiaDashboard';
+import Dashboard from '../Dashboard';
+import VisualImpairedDashboard from '../VisualImpairedDashboard';
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
@@ -23,7 +27,7 @@ const StudentCard = ({ student, onClick }) => {
   };
 
   return (
-    <div onClick={() => onClick(student.id)} style={styles.card} className="student-card">
+    <div onClick={() => onClick(student)} style={styles.card} className="student-card">
       <div style={styles.cardHeader}>
         <div style={styles.avatarCircle}>
           {student.avatar ? <img src={student.avatar} alt="" style={styles.avatarImg} /> : <span>{student.name[0]}</span>}
@@ -33,10 +37,10 @@ const StudentCard = ({ student, onClick }) => {
           <span style={styles.statusText}>{student.lastActive ? 'Active' : 'Offline'}</span>
         </div>
       </div>
-      
+
       <h3 style={styles.cardName}>{student.name}</h3>
       <p style={styles.cardAge}>{student.ageGroup} Years</p>
-      
+
       <div style={styles.tagRow}>
         {student.disabilities?.map(d => (
           <span key={d} style={{ ...styles.tag, background: getDisabilityColor(d) + '20', color: getDisabilityColor(d) }}>
@@ -44,7 +48,7 @@ const StudentCard = ({ student, onClick }) => {
           </span>
         ))}
       </div>
-      
+
       <div style={styles.progressSection}>
         <div style={styles.progressLabel}>
           <span>Progress</span>
@@ -54,7 +58,7 @@ const StudentCard = ({ student, onClick }) => {
           <div style={{ ...styles.progressBarFill, width: `${student.progress || 0}%` }} />
         </div>
       </div>
-      
+
       <div style={styles.cardFooter}>
         <span style={styles.pinHint}>PIN: {student.pin}</span>
         <button style={styles.viewBtn}>View Stats →</button>
@@ -75,7 +79,7 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, teacherId }) => {
   const toggleDisability = (d) => {
     setFormData(prev => ({
       ...prev,
-      disabilities: prev.disabilities.includes(d) 
+      disabilities: prev.disabilities.includes(d)
         ? prev.disabilities.filter(item => item !== d)
         : [...prev.disabilities, d]
     }));
@@ -112,11 +116,11 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, teacherId }) => {
     e.preventDefault();
     if (!formData.name) return;
     setLoading(true);
-    
+
     try {
       // 1. Generate PIN
       const pin = await generatePIN();
-      
+
       // 2. Create Student Profile
       const studentData = {
         ...formData,
@@ -156,15 +160,15 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, teacherId }) => {
           <h2 style={styles.modalTitle}>✨ Add New Child</h2>
           <button onClick={onClose} style={styles.closeBtn}>✕</button>
         </div>
-        
+
         <form onSubmit={handleSubmit} style={styles.modalForm}>
           <div style={styles.inputGroup}>
             <label style={styles.modalLabel}>CHILD'S NAME</label>
-            <input 
-              style={styles.modalInput} 
-              placeholder="e.g. Aarav Sharma" 
+            <input
+              style={styles.modalInput}
+              placeholder="e.g. Aarav Sharma"
               value={formData.name}
-              onChange={e => setFormData({...formData, name: e.target.value})}
+              onChange={e => setFormData({ ...formData, name: e.target.value })}
               required
             />
           </div>
@@ -173,10 +177,10 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, teacherId }) => {
             <label style={styles.modalLabel}>AGE GROUP</label>
             <div style={styles.radioGroup}>
               {['6–9', '10–13', '14–18'].map(age => (
-                <button 
+                <button
                   key={age}
                   type="button"
-                  onClick={() => setFormData({...formData, ageGroup: age})}
+                  onClick={() => setFormData({ ...formData, ageGroup: age })}
                   style={{ ...styles.radioBtn, ...(formData.ageGroup === age ? styles.radioBtnActive : {}) }}
                 >
                   {age}
@@ -189,12 +193,12 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, teacherId }) => {
             <label style={styles.modalLabel}>DISABILITY (SELECT ALL THAT APPLY)</label>
             <div style={styles.disabilityGrid}>
               {['Dyslexia', 'ADHD', 'Low Vision', 'Hard of Hearing'].map(d => (
-                <button 
+                <button
                   key={d}
                   type="button"
                   onClick={() => toggleDisability(d)}
-                  style={{ 
-                    ...styles.disabilityBtn, 
+                  style={{
+                    ...styles.disabilityBtn,
                     ...(formData.disabilities.includes(d) ? styles.disabilityBtnActive : {}),
                     borderColor: formData.disabilities.includes(d) ? styles.disabilityColors[d] : '#D0D8E4'
                   }}
@@ -207,10 +211,10 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, teacherId }) => {
 
           <div style={styles.inputGroup}>
             <label style={styles.modalLabel}>PRIMARY LANGUAGE</label>
-            <select 
+            <select
               style={styles.modalSelect}
               value={formData.language}
-              onChange={e => setFormData({...formData, language: e.target.value})}
+              onChange={e => setFormData({ ...formData, language: e.target.value })}
             >
               <option>English</option>
               <option>Hindi</option>
@@ -232,12 +236,13 @@ const AddStudentModal = ({ isOpen, onClose, onAdd, teacherId }) => {
 
 export default function TeacherDashboard() {
   const { currentUser, userProfile, logout } = useAuth();
-  const [students, setStudents]         = useState([]);
-  const [isModalOpen, setIsModalOpen]   = useState(false);
+  const [students, setStudents] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [contentList, setContentList]   = useState([]);
-  const [loading, setLoading]           = useState(true);
-  const [currentTab, setCurrentTab]     = useState('overview');
+  const [contentList, setContentList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentTab, setCurrentTab] = useState('overview');
+  const [selectedStudent, setSelectedStudent] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -264,6 +269,40 @@ export default function TeacherDashboard() {
     setStudents(prev => [newStudent, ...prev]);
   };
 
+  const handleStudentClick = (student) => {
+    // Show disability-specific dashboard for any student
+    setSelectedStudent(student);
+  };
+
+  const closeStudentDashboard = () => {
+    setSelectedStudent(null);
+  };
+
+  const getPrimaryDisability = (disabilities) => {
+    if (!disabilities || disabilities.length === 0) return null;
+    // Prioritize: ADHD > Dyslexia > Low Vision > Hard of Hearing
+    if (disabilities.includes('ADHD') || disabilities.includes('Adhd')) return 'ADHD';
+    if (disabilities.includes('Dyslexia') || disabilities.includes('dyslexia')) return 'Dyslexia';
+    if (disabilities.includes('Low Vision') || disabilities.includes('low vision')) return 'Low Vision';
+    return disabilities[0];
+  };
+
+  const renderStudentDashboard = () => {
+    if (!selectedStudent) return null;
+    const primaryDisability = getPrimaryDisability(selectedStudent.disabilities);
+
+    switch (primaryDisability) {
+      case 'ADHD':
+        return <ADHDDashboard selectedStudent={selectedStudent} isEmbedded={true} />;
+      case 'Dyslexia':
+        return <DyslexiaDashboard selectedStudent={selectedStudent} isEmbedded={true} />;
+      case 'Low Vision':
+        return <VisualImpairedDashboard selectedStudent={selectedStudent} isEmbedded={true} />;
+      default:
+        return <Dashboard selectedStudent={selectedStudent} isEmbedded={true} />;
+    }
+  };
+
   return (
     <div style={styles.page}>
       <style>{`
@@ -283,29 +322,29 @@ export default function TeacherDashboard() {
       <div style={styles.sidebar}>
         <div style={styles.sidebarTop}>
           <div style={styles.logoGroup}>
-             <LuminaLogo size={36} color="#FFFFFF" />
-             <span style={styles.brandName}>Lumina</span>
+            <LuminaLogo size={36} color="#FFFFFF" />
+            <span style={styles.brandName}>Lumina</span>
           </div>
           <nav style={styles.nav}>
-            <div 
+            <div
               onClick={() => setCurrentTab('overview')}
               style={{ ...styles.navItem, ...(currentTab === 'overview' ? styles.navItemActive : {}) }}
             >
               🏠 Overview
             </div>
-            <div 
+            <div
               onClick={() => setCurrentTab('lessons')}
               style={{ ...styles.navItem, ...(currentTab === 'lessons' ? styles.navItemActive : {}) }}
             >
               📚 Lessons
             </div>
-            <div 
+            <div
               onClick={() => setCurrentTab('analytics')}
               style={{ ...styles.navItem, ...(currentTab === 'analytics' ? styles.navItemActive : {}) }}
             >
               📈 Analytics
             </div>
-            <div 
+            <div
               onClick={() => setCurrentTab('settings')}
               style={{ ...styles.navItem, ...(currentTab === 'settings' ? styles.navItemActive : {}) }}
             >
@@ -357,7 +396,7 @@ export default function TeacherDashboard() {
             <section style={styles.gridContainer}>
               <h2 style={styles.sectionTitle}>Students Overview</h2>
               {loading ? (
-                 <div style={styles.loader}>Loading students...</div>
+                <div style={styles.loader}>Loading students...</div>
               ) : students.length === 0 ? (
                 <div style={styles.emptyState}>
                   <div style={styles.emptyIcon}>🎨</div>
@@ -367,10 +406,10 @@ export default function TeacherDashboard() {
               ) : (
                 <div style={styles.grid}>
                   {students.map(student => (
-                    <StudentCard 
-                      key={student.id} 
-                      student={student} 
-                      onClick={(id) => navigate(`/student/${id}`)} 
+                    <StudentCard
+                      key={student.id}
+                      student={student}
+                      onClick={handleStudentClick}
                     />
                   ))}
                 </div>
@@ -431,7 +470,7 @@ export default function TeacherDashboard() {
                 <div style={styles.barChart}>
                   {[65, 82, 78, 90, 84, 88].map((h, i) => (
                     <div key={i} style={{ ...styles.bar, height: `${h}%` }}>
-                      <span style={styles.barLabel}>{['M','T','W','T','F','S'][i]}</span>
+                      <span style={styles.barLabel}>{['M', 'T', 'W', 'T', 'F', 'S'][i]}</span>
                     </div>
                   ))}
                 </div>
@@ -452,7 +491,7 @@ export default function TeacherDashboard() {
               <div style={styles.rankingList}>
                 {students.slice(0, 3).map((s, i) => (
                   <div key={s.id} style={styles.rankingItem}>
-                    <span style={styles.rank}>#{i+1}</span>
+                    <span style={styles.rank}>#{i + 1}</span>
                     <span style={styles.rankName}>{s.name}</span>
                     <span style={styles.rankScore}>{s.progress || 0}% Complete</span>
                   </div>
@@ -498,9 +537,9 @@ export default function TeacherDashboard() {
         )}
       </div>
 
-      <AddStudentModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <AddStudentModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         onAdd={(s) => setStudents(prev => [s, ...prev])}
         teacherId={currentUser?.uid}
       />
@@ -512,6 +551,21 @@ export default function TeacherDashboard() {
         students={students}
         onSaved={(item) => setContentList(prev => [item, ...prev])}
       />
+
+      {/* STUDENT DASHBOARD MODAL OVERLAY */}
+      {selectedStudent && (
+        <div style={styles.adhd_modalOverlay}>
+          <div style={styles.adhd_modalContent}>
+            <button
+              onClick={closeStudentDashboard}
+              style={styles.adhd_closeBtn}
+            >
+              ✕ Close
+            </button>
+            {renderStudentDashboard()}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -765,9 +819,9 @@ const styles = {
     borderTop: '1px solid #F7F9FC',
   },
   pinHint: {
-     fontSize: 13,
-     fontWeight: 700,
-     color: '#E8920C',
+    fontSize: 13,
+    fontWeight: 700,
+    color: '#E8920C',
   },
   viewBtn: {
     background: 'transparent',
@@ -777,7 +831,7 @@ const styles = {
     fontWeight: 800,
     cursor: 'pointer',
   },
-  
+
   // MODAL STYLES
   modalOverlay: {
     position: 'fixed',
@@ -1151,5 +1205,46 @@ const styles = {
     color: '#A0AEC0',
     margin: 0,
     marginTop: 2,
+  },
+  adhd_modalOverlay: {
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    display: 'flex',
+    flexDirection: 'column',
+    zIndex: 9999,
+  },
+  adhd_modalHeader: {
+    backgroundColor: '#E8920C',
+    color: 'white',
+    padding: '20px 40px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+  },
+  adhd_modalTitle: {
+    margin: 0,
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    fontFamily: "'Fraunces', serif",
+  },
+  adhd_closeBtn: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    color: 'white',
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    padding: '0 10px',
+    transition: 'all 0.2s ease',
+  },
+  adhd_modalContent: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '20px',
   },
 };
