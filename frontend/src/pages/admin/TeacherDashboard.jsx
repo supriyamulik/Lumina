@@ -9,10 +9,6 @@ import { QRCodeSVG } from 'qrcode.react';
 import UploadContentModal from './UploadContentModal';
 import { fetchTeacherContent } from '../../services/contentService';
 import { LuminaLogo } from '../../components/BrandLogo';
-import ADHDDashboard from '../ADHDDashboard';
-import DyslexiaDashboard from '../DyslexiaDashboard';
-import Dashboard from '../Dashboard';
-import VisualImpairedDashboard from '../VisualImpairedDashboard';
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
@@ -242,7 +238,6 @@ export default function TeacherDashboard() {
   const [contentList, setContentList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState('overview');
-  const [selectedStudent, setSelectedStudent] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -270,37 +265,7 @@ export default function TeacherDashboard() {
   };
 
   const handleStudentClick = (student) => {
-    // Show disability-specific dashboard for any student
-    setSelectedStudent(student);
-  };
-
-  const closeStudentDashboard = () => {
-    setSelectedStudent(null);
-  };
-
-  const getPrimaryDisability = (disabilities) => {
-    if (!disabilities || disabilities.length === 0) return null;
-    // Prioritize: ADHD > Dyslexia > Low Vision > Hard of Hearing
-    if (disabilities.includes('ADHD') || disabilities.includes('Adhd')) return 'ADHD';
-    if (disabilities.includes('Dyslexia') || disabilities.includes('dyslexia')) return 'Dyslexia';
-    if (disabilities.includes('Low Vision') || disabilities.includes('low vision')) return 'Low Vision';
-    return disabilities[0];
-  };
-
-  const renderStudentDashboard = () => {
-    if (!selectedStudent) return null;
-    const primaryDisability = getPrimaryDisability(selectedStudent.disabilities);
-
-    switch (primaryDisability) {
-      case 'ADHD':
-        return <ADHDDashboard selectedStudent={selectedStudent} isEmbedded={true} />;
-      case 'Dyslexia':
-        return <DyslexiaDashboard selectedStudent={selectedStudent} isEmbedded={true} />;
-      case 'Low Vision':
-        return <VisualImpairedDashboard selectedStudent={selectedStudent} isEmbedded={true} />;
-      default:
-        return <Dashboard selectedStudent={selectedStudent} isEmbedded={true} />;
-    }
+    navigate(`/student/${student.id}`);
   };
 
   return (
@@ -552,20 +517,6 @@ export default function TeacherDashboard() {
         onSaved={(item) => setContentList(prev => [item, ...prev])}
       />
 
-      {/* STUDENT DASHBOARD MODAL OVERLAY */}
-      {selectedStudent && (
-        <div style={styles.adhd_modalOverlay}>
-          <div style={styles.adhd_modalContent}>
-            <button
-              onClick={closeStudentDashboard}
-              style={styles.adhd_closeBtn}
-            >
-              ✕ Close
-            </button>
-            {renderStudentDashboard()}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
