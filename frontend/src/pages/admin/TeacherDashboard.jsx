@@ -269,7 +269,8 @@ export default function TeacherDashboard() {
   };
 
   return (
-    <div style={styles.page}>
+    <div className="dyslexia-forced" style={styles.page}>
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&display=swap');
         .fade-up { animation: fadeUp 0.4s ease-out both; }
@@ -281,7 +282,11 @@ export default function TeacherDashboard() {
           transform: translateY(-5px);
           box-shadow: 0 12px 24px rgba(0,0,0,0.1);
         }
+        .dyslexia-forced, .dyslexia-forced * {
+          font-family: 'Open-Dyslexic', sans-serif !important;
+        }
       `}</style>
+
 
       {/* SIDEBAR NAVIGATION (Minimal) */}
       <div style={styles.sidebar}>

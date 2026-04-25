@@ -302,7 +302,7 @@ export default function GlobalAssistant({ studentProfile = {}, lessonContext = {
 
     return (
         <div
-            className="leo-assistant-container"
+            className={`leo-assistant-container ${window.isDyslexiaMode ? 'dyslexia-forced' : ''}`}
             aria-label="Leo Adaptive Learning Assistant"
             role="status"
             aria-live="polite"

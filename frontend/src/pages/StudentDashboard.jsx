@@ -27,8 +27,8 @@ const C = {
 };
 
 const Fonts = {
-  heading: "'Fraunces', serif",
-  body: "'Nunito', sans-serif"
+  get heading() { return window.isDyslexiaMode ? "'Open-Dyslexic', sans-serif" : "'Fraunces', serif" },
+  get body() { return window.isDyslexiaMode ? "'Open-Dyslexic', sans-serif" : "'Nunito', sans-serif" }
 };
 
 const Icons = {
@@ -47,7 +47,16 @@ export default function StudentDashboard() {
   const { profile } = useProfile() || { profile: null };
   const { logoutChild } = useAuth();
   const { t, i18n } = useTranslation();
-  const { isDyslexiaMode, toggleDyslexiaMode } = useAccessibility();
+
+  const [isDyslexiaMode, setIsDyslexiaMode] = useState(true);
+  const toggleDyslexiaMode = () => {
+    setIsDyslexiaMode(!isDyslexiaMode);
+    window.isDyslexiaMode = !isDyslexiaMode;
+  };
+  
+  useEffect(() => {
+    window.isDyslexiaMode = isDyslexiaMode;
+  }, [isDyslexiaMode]);
 
   const [currentView, setCurrentView] = useState('home'); // 'home', 'labs', 'settings'
   const [companionState, setCompanionState] = useState('idle');
@@ -95,7 +104,7 @@ export default function StudentDashboard() {
   const mainAreaStyle = {
     minHeight: '100vh',
     backgroundColor: C.slate,
-    fontFamily: isDyslexiaMode ? "'OpenDyslexic', sans-serif" : Fonts.body,
+    fontFamily: isDyslexiaMode ? "'Open-Dyslexic', sans-serif" : Fonts.body,
     display: 'flex',
     flexDirection: 'column'
   };
@@ -179,7 +188,8 @@ export default function StudentDashboard() {
   };
 
   return (
-    <>
+    <div className={isDyslexiaMode ? "dyslexia-forced" : ""}>
+
       {/* 🎓 ADHD DASHBOARD - Auto-rendered for ADHD students */}
       {profile?.condition === 'ADHD' ? (
         <ADHDDashboard />
@@ -574,9 +584,12 @@ export default function StudentDashboard() {
           <style>{`
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
         button:active { transform: scale(0.95); }
+        .dyslexia-forced, .dyslexia-forced * {
+          font-family: 'Open-Dyslexic', sans-serif !important;
+        }
       `}</style>
         </div>
       )}
-    </>
+    </div>
   );
 }

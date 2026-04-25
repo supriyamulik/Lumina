@@ -86,16 +86,22 @@ export default function SignLanguageDashboard() {
 
     return (
         <div
+            className="dyslexia-forced"
             style={{
                 minHeight: '100vh',
                 backgroundColor: C.slate,
-                fontFamily: "'Nunito', sans-serif",
                 padding: '20px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '18px'
             }}
         >
+            <style>{`
+                .dyslexia-forced, .dyslexia-forced * {
+                    font-family: 'Open-Dyslexic', sans-serif !important;
+                }
+            `}</style>
+
             {/* BACK BUTTON */}
             <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <button
