@@ -13,6 +13,12 @@
     pointer-events: auto;
 }
 
+.leo-assistant-container.dyslexia-forced, 
+.leo-assistant-container.dyslexia-forced * {
+    font-family: 'Open-Dyslexic', sans-serif !important;
+}
+
+
 /* Leo Character Display */
 .leo-character {
     position: relative;
